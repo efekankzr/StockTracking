@@ -1,0 +1,6 @@
+@StockTracking.WebAPI_HostAddress = http://localhost:5051
+
+GET {{StockTracking.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

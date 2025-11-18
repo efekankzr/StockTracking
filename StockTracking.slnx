@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="StockTracking.Application/StockTracking.Application.csproj" />
+  <Project Path="StockTracking.Domain/StockTracking.Domain.csproj" />
+  <Project Path="StockTracking.Infrastructure/StockTracking.Infrastructure.csproj" />
+  <Project Path="StockTracking.Persistence/StockTracking.Persistence.csproj" />
+  <Project Path="StockTracking.Tests/StockTracking.Tests.csproj" />
+  <Project Path="StockTracking.WebAPI/StockTracking.WebAPI.csproj" />
+</Solution>
