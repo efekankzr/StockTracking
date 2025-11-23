@@ -9,8 +9,13 @@ public class StockDbContext : DbContext
     {
     }
 
-    public DbSet<Stock> Stocks { get; set; }
     public DbSet<Product> Products { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Warehouse> Warehouses { get; set; }
+    public DbSet<Stock> Stocks { get; set; }
+    public DbSet<StockLog> StockLogs { get; set; }
+    public DbSet<Sale> Sales { get; set; }
+    public DbSet<User> Users { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

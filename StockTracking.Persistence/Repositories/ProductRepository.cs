@@ -10,10 +10,5 @@ namespace StockTracking.Persistence.Repositories
         public ProductRepository(StockDbContext context) : base(context)
         {
         }
-
-        public async Task<Product?> GetByBarcodeAsync(string barcode)
-        {
-            return await _dbSet.FirstOrDefaultAsync(x => x.Barcode == barcode);
-        }
     }
 }

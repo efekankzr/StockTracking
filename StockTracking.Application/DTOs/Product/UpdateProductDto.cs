@@ -1,8 +1,7 @@
 ﻿namespace StockTracking.Application.DTOs.Product
 {
-    public class UpdateProductDto
+    public class UpdateProductDto : CreateProductDto
     {
-        public string Name { get; set; } = null!;
-        public string Barcode { get; set; } = null!;
+        public int Id { get; set; }
     }
 }

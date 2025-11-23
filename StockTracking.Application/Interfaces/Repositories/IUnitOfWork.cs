@@ -3,6 +3,13 @@
     public interface IUnitOfWork : IAsyncDisposable
     {
         IProductRepository Products { get; }
+        ICategoryRepository Categories { get; }
+        IWarehouseRepository Warehouses { get; }
+        IStockRepository Stocks { get; }
+        IStockLogRepository StockLogs { get; }
+        ISaleRepository Sales { get; }
+        IUserRepository Users { get; }
+
         Task<int> SaveChangesAsync();
     }
 }

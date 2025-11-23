@@ -1,22 +1,28 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StockTracking.Application.Interfaces.Repositories;
-using StockTracking.Application.Interfaces.Services;
 using StockTracking.Persistence.Context;
 using StockTracking.Persistence.Repositories;
-using StockTracking.Persistence.Services;
 
-namespace StockTracking.Persistence;
-
-public static class PersistenceServiceRegistration
+namespace StockTracking.Persistence
 {
-    public static IServiceCollection AddPersistenceServices(this IServiceCollection services, string connectionString)
+    public static class PersistenceServiceRegistration
     {
-        services.AddDbContext<StockDbContext>(options =>
-            options.UseSqlServer(connectionString));
+        public static void AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            // DbContext
+            services.AddDbContext<StockDbContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-        services.AddScoped<IProductService, ProductService>();
-        return services;
+            // Repositories & UnitOfWork
+            // Generic Repo'yu eklemeyi unutma
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Eğer özel repo kullanacaksan (ProductRepository gibi) onları da buraya ekle
+            services.AddScoped<IProductRepository, ProductRepository>();
+            // services.AddScoped<IUserRepository, UserRepository>(); vs...
+        }
     }
 }
