@@ -5,7 +5,7 @@ namespace StockTracking.Persistence.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly StockDbContext _context;
+        private readonly StockTrackingDbContext _context;
 
         // Repository backing fields
         private IProductRepository _products;
@@ -16,7 +16,7 @@ namespace StockTracking.Persistence.Repositories
         private ISaleRepository _sales;
         private IUserRepository _users;
 
-        public UnitOfWork(StockDbContext context)
+        public UnitOfWork(StockTrackingDbContext context)
         {
             _context = context;
         }

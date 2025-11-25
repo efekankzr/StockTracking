@@ -39,8 +39,30 @@ namespace StockTracking.Application.Services
         {
             var product = _mapper.Map<Product>(request);
             await _unitOfWork.Products.AddAsync(product);
+
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<ProductDto>(_mapper.Map<ProductDto>(product), "Ürün eklendi.");
+
+            var warehouses = await _unitOfWork.Warehouses.GetAllAsync();
+
+            if (warehouses.Count > 0)
+            {
+                var newStocks = new List<Stock>();
+
+                foreach (var warehouse in warehouses)
+                {
+                    newStocks.Add(new Stock
+                    {
+                        ProductId = product.Id,
+                        WarehouseId = warehouse.Id,
+                        Quantity = 0
+                    });
+                }
+
+                await _unitOfWork.Stocks.AddRangeAsync(newStocks);
+                await _unitOfWork.SaveChangesAsync(); // Stokları kaydet
+            }
+
+            return new ServiceResponse<ProductDto>(_mapper.Map<ProductDto>(product), "Ürün ve depo stok kayıtları oluşturuldu.");
         }
 
         public async Task<ServiceResponse<bool>> UpdateAsync(UpdateProductDto request)

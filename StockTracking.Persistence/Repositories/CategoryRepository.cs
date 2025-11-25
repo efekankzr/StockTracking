@@ -6,7 +6,7 @@ namespace StockTracking.Persistence.Repositories
 {
     public class CategoryRepository : GenericRepository<Category>, ICategoryRepository
     {
-        public CategoryRepository(StockDbContext context) : base(context)
+        public CategoryRepository(StockTrackingDbContext context) : base(context)
         {
         }
     }

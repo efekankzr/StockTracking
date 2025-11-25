@@ -34,8 +34,18 @@ namespace StockTracking.Application.Services
 
         public async Task<ServiceResponse<bool>> CreateStockEntryAsync(CreateStockEntryDto request, int currentUserId)
         {
-            // 1. Stok Kaydı Var mı?
             var stock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == request.ProductId && s.WarehouseId == request.WarehouseId);
+
+            if (stock == null)
+            {
+                stock = new Stock
+                {
+                    ProductId = request.ProductId,
+                    WarehouseId = request.WarehouseId,
+                    Quantity = 0
+                };
+                await _unitOfWork.Stocks.AddAsync(stock);
+            }
 
             int quantityChange = request.ProcessType switch
             {
@@ -47,22 +57,12 @@ namespace StockTracking.Application.Services
 
             if (quantityChange == 0) return new ServiceResponse<bool>("Geçersiz işlem tipi.");
 
-            // 2. Stok Güncelleme
-            if (stock == null)
-            {
-                if (quantityChange < 0) return new ServiceResponse<bool>("Stokta olmayan ürün düşülemez.");
+            if (stock.Quantity + quantityChange < 0)
+                return new ServiceResponse<bool>($"Yetersiz stok! Mevcut: {stock.Quantity}, Düşülmek İstenen: {request.Quantity}");
 
-                stock = new Stock { ProductId = request.ProductId, WarehouseId = request.WarehouseId, Quantity = quantityChange };
-                await _unitOfWork.Stocks.AddAsync(stock);
-            }
-            else
-            {
-                if (stock.Quantity + quantityChange < 0) return new ServiceResponse<bool>("Yetersiz stok.");
-                stock.Quantity += quantityChange;
-                _unitOfWork.Stocks.Update(stock);
-            }
+            stock.Quantity += quantityChange;
+            _unitOfWork.Stocks.Update(stock);
 
-            // 3. Loglama
             var log = new StockLog
             {
                 ProductId = request.ProductId,

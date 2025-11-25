@@ -1,68 +1,68 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using StockTracking.Application.DTOs.Auth;
-using StockTracking.Application.Interfaces.Repositories;
+using StockTracking.Application.DTOs.User;
 using StockTracking.Application.Interfaces.Services;
 using StockTracking.Application.Wrappers;
 using StockTracking.Domain.Entities;
-using StockTracking.Domain.Enums;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace StockTracking.Application.Services
 {
     public class UserService : IUserService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly IMapper _mapper;
 
-        public UserService(IUnitOfWork unitOfWork, IMapper mapper)
+        public UserService(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
+            _userManager = userManager;
+            _roleManager = roleManager;
             _mapper = mapper;
         }
 
         public async Task<ServiceResponse<List<UserDto>>> GetAllAsync()
         {
-            // ESKİSİ: var users = await _unitOfWork.Users.GetAllAsync();
+            var users = await _userManager.Users.Include(u => u.Warehouse).ToListAsync();
+            var dtos = new List<UserDto>();
 
-            // YENİSİ (Include'lu metot):
-            var users = await _unitOfWork.Users.GetAllWithDetailsAsync();
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                var dto = _mapper.Map<UserDto>(user);
+                dto.Role = roles.FirstOrDefault() ?? "User"; // Rolü manuel ekle
+                dtos.Add(dto);
+            }
 
-            return new ServiceResponse<List<UserDto>>(_mapper.Map<List<UserDto>>(users));
+            return new ServiceResponse<List<UserDto>>(dtos);
         }
 
         public async Task<ServiceResponse<bool>> CreateUserAsync(CreateUserDto request)
         {
-            // 1. Kullanıcı var mı?
-            var existingUser = await _unitOfWork.Users.GetSingleAsync(u => u.Email == request.Email || u.Username == request.Username);
-            if (existingUser != null) return new ServiceResponse<bool>("Kullanıcı zaten mevcut.");
+            var existing = await _userManager.FindByNameAsync(request.Username);
+            if (existing != null) return new ServiceResponse<bool>("Kullanıcı zaten var.");
 
-            // 2. Depo Zorunluluğu Kontrolü
-            if (request.RoleId != (int)UserRole.Admin)
+            var user = new User
             {
-                if (request.WarehouseId == null || request.WarehouseId == 0)
-                    return new ServiceResponse<bool>("Personel için depo seçimi zorunludur.");
+                UserName = request.Username,
+                Email = request.Email,
+                FullName = request.FullName,
+                PhoneNumber = request.PhoneNumber,
+                WarehouseId = request.WarehouseId,
+                IsActive = true
+            };
 
-                var wh = await _unitOfWork.Warehouses.GetByIdAsync(request.WarehouseId.Value);
-                if (wh == null) return new ServiceResponse<bool>("Seçilen depo bulunamadı.");
-            }
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (!result.Succeeded)
+                return new ServiceResponse<bool>(string.Join(", ", result.Errors.Select(e => e.Description)));
 
-            var user = _mapper.Map<User>(request);
-            user.PasswordHash = CreatePasswordHash(request.Password);
-            user.IsActive = true;
-            user.Role = (UserRole)request.RoleId;
-            if (user.Role == UserRole.Admin) user.WarehouseId = null;
+            if (!await _roleManager.RoleExistsAsync(request.Role))
+                await _roleManager.CreateAsync(new IdentityRole<int>(request.Role));
 
-            await _unitOfWork.Users.AddAsync(user);
-            await _unitOfWork.SaveChangesAsync();
+            await _userManager.AddToRoleAsync(user, request.Role);
 
             return new ServiceResponse<bool>(true, "Personel oluşturuldu.");
-        }
-
-        private string CreatePasswordHash(string password)
-        {
-            using var sha256 = SHA256.Create();
-            return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(password)));
         }
     }
 }

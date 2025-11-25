@@ -1,13 +1,17 @@
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StockTracking.Application;
+using StockTracking.Domain.Entities;
 using StockTracking.Persistence;
+using StockTracking.Persistence.Context;
+using StockTracking.WebAPI;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -17,24 +21,43 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. KATMAN SERVÝS KAYITLARI
 // ---------------------------------------------------------
 
+// CORS Politikasý
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost",
-        builder => builder
-        .WithOrigins("http://localhost:3000") // Frontend'in adresi
-        .AllowAnyMethod()   // GET, POST, PUT, DELETE hepsine izin ver
-        .AllowAnyHeader()   // Token header'ýna izin ver
-        .AllowCredentials()); // Cookie/Auth bilgilerine izin ver
+        b => b
+        .WithOrigins("http://localhost:3000") // Frontend adresi
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials());
 });
+
+// Persistence ve Application Katmanlarý
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
+
+// --- MICROSOFT IDENTITY AYARLARI (YENÝ) ---
+builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
+{
+    // Þifre Kurallarý (Development için basit tuttum)
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+
+    // Kullanýcý Kurallarý
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<StockTrackingDbContext>() // Context ile baðla
+.AddDefaultTokenProviders(); // Token iþlemleri için
+
 
 // ---------------------------------------------------------
 // 2. CONTROLLER & FLUENT VALIDATION
 // ---------------------------------------------------------
 builder.Services.AddControllers();
 
-// Modern FluentValidation kullanýmý
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 
@@ -56,18 +79,16 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        // Null check (!) ekledik, boþ gelirse hata versin diye
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
 });
 
 // ---------------------------------------------------------
-// 4. SWAGGER (JWT Kilit Butonu Destekli)
+// 4. SWAGGER (JWT Destekli)
 // ---------------------------------------------------------
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    // Yetkilendirme Tanýmý
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
@@ -77,7 +98,6 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
 
-    // Yetkilendirme Gereksinimi
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -102,7 +122,9 @@ var app = builder.Build();
 // ---------------------------------------------------------
 // 5. MIDDLEWARE PIPELINE
 // ---------------------------------------------------------
+
 app.UseCors("AllowLocalhost");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -111,10 +133,21 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Sýralama Önemli: Önce Kimlik, Sonra Yetki
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        SeedData.Initialize(services).Wait();
+    }
+    catch (Exception ex)
+    {
+    }
+}
 
 app.Run();

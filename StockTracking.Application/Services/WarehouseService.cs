@@ -33,10 +33,36 @@ namespace StockTracking.Application.Services
 
         public async Task<ServiceResponse<WarehouseDto>> CreateAsync(CreateWarehouseDto request)
         {
+            var existing = await _unitOfWork.Warehouses.GetSingleAsync(w => w.Name == request.Name);
+            if (existing != null)
+                return new ServiceResponse<WarehouseDto>("Bu isimde bir depo zaten mevcut.");
+
             var warehouse = _mapper.Map<Warehouse>(request);
             await _unitOfWork.Warehouses.AddAsync(warehouse);
+
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse), "Depo eklendi.");
+
+            var products = await _unitOfWork.Products.GetAllAsync();
+
+            if (products.Count > 0)
+            {
+                var newStocks = new List<Stock>();
+
+                foreach (var product in products)
+                {
+                    newStocks.Add(new Stock
+                    {
+                        WarehouseId = warehouse.Id,
+                        ProductId = product.Id,
+                        Quantity = 0
+                    });
+                }
+
+                await _unitOfWork.Stocks.AddRangeAsync(newStocks);
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse), "Depo açıldı ve ürün stokları 0 olarak tanımlandı.");
         }
 
         public async Task<ServiceResponse<bool>> UpdateAsync(UpdateWarehouseDto request)

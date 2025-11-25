@@ -11,7 +11,7 @@ namespace StockTracking.Persistence
     {
         public static void AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<StockDbContext>(options =>
+            services.AddDbContext<StockTrackingDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

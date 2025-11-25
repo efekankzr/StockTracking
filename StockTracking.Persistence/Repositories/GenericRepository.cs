@@ -6,12 +6,12 @@ using System.Linq.Expressions;
 
 namespace StockTracking.Persistence.Repositories
 {
-    public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
+    public class GenericRepository<T> : IGenericRepository<T> where T : class, IEntity, new()
     {
-        private readonly StockDbContext _context;
+        private readonly StockTrackingDbContext _context;
         private readonly DbSet<T> _dbSet;
 
-        public GenericRepository(StockDbContext context)
+        public GenericRepository(StockTrackingDbContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();
@@ -71,7 +71,6 @@ namespace StockTracking.Persistence.Repositories
 
         public async Task<int> SaveChangesAsync()
         {
-            // Genelde UoW üzerinden save yaparız ama repo üzerinden çağrılırsa diye:
             return await _context.SaveChangesAsync();
         }
     }

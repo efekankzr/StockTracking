@@ -6,7 +6,7 @@ namespace StockTracking.Persistence.Repositories
 {
     public class StockLogRepository : GenericRepository<StockLog>, IStockLogRepository
     {
-        public StockLogRepository(StockDbContext context) : base(context)
+        public StockLogRepository(StockTrackingDbContext context) : base(context)
         {
         }
     }

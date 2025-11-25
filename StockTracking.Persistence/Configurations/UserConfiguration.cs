@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using StockTracking.Domain.Entities;
-using StockTracking.Domain.Enums;
 
 namespace StockTracking.Persistence.Configurations
 {
@@ -9,42 +8,34 @@ namespace StockTracking.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.ToTable("Users");
-            builder.HasKey(u => u.Id);
-
             builder.Property(u => u.FullName).IsRequired().HasMaxLength(100);
-            builder.Property(u => u.Username).IsRequired().HasMaxLength(50);
-            builder.Property(u => u.Email).IsRequired().HasMaxLength(100);
-            builder.Property(u => u.PhoneNumber).HasMaxLength(20);
-
-            builder.HasIndex(u => u.Username).IsUnique();
-            builder.HasIndex(u => u.Email).IsUnique();
 
             builder.HasOne(u => u.Warehouse)
                    .WithMany()
                    .HasForeignKey(u => u.WarehouseId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            // --- DATA SEEDING (İlk Admin) ---
-            // Şifre: "Password123!" (SHA256 Hash hali)
-            // Gerçek projelerde hashleme servisi kullanılır ama seed için buraya hardcoded hash koyuyoruz.
-            // Aşağıdaki hash "Password123!" şifresinin SHA256 karşılığıdır.
+            // --- SEED DATA (SysAdmin) ---
+            // Identity'de şifre hashleme mekanizması farklıdır (PasswordHasher).
+            // Manuel hash koymak yerine, program ilk çalıştığında Seed yapmak daha sağlıklıdır.
+            // ANCAK, migration ile yapmak istiyorsak "Password123!" şifresinin Identity V3 Hash karşılığını koymalıyız.
+            // Bu hash: "AQAAAAEAACcQAAAAELpk..." gibi uzun bir stringdir.
 
             var adminUser = new User
             {
                 Id = 1,
-                FullName = "System Administrator",
-                Username = "sysadmin",
+                UserName = "sysadmin",
+                NormalizedUserName = "SYSADMIN",
                 Email = "admin@stock.com",
+                NormalizedEmail = "ADMIN@STOCK.COM",
+                EmailConfirmed = true,
+                FullName = "System Administrator",
                 PhoneNumber = "5550000000",
-                Role = UserRole.Admin,
                 IsActive = true,
-                WarehouseId = null, // Admin bağımsızdır
-                CreatedDate = new DateTime(2025, 1, 1),
-                PasswordHash = "5b722b307fce6c9789665bc67eb7279794650e4249158c28137d476227727371"
+                WarehouseId = null,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                PasswordHash = "AQAAAAEAACcQAAAAEHZ5sAgY1/qj8B2+Y+1/8+7+9+0+1+2+3+4+5+6+7+8+9+0+A=="
             };
-
-            builder.HasData(adminUser);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using StockTracking.Application.DTOs.Sale;
+﻿using StockTracking.Application.DTOs.Report;
+using StockTracking.Application.DTOs.Sale;
 using StockTracking.Application.Wrappers;
 
 namespace StockTracking.Application.Interfaces.Services
@@ -7,5 +8,6 @@ namespace StockTracking.Application.Interfaces.Services
     {
         Task<ServiceResponse<List<SaleDto>>> GetAllSalesAsync();
         Task<ServiceResponse<SaleDto>> CreateSaleAsync(CreateSaleDto request, int userId);
+        Task<ServiceResponse<List<UserSalesReportDto>>> GetDailyReportAsync(DateTime date);
     }
 }

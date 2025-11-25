@@ -10,15 +10,12 @@ namespace StockTracking.Application
     {
         public static void AddApplicationServices(this IServiceCollection services)
         {
-            // AutoMapper
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-            // FluentValidation (Validatorları bulur)
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-            // BUSINESS SERVICES (Servislerini buraya ekle!)
-            // Program.cs'de kirlilik yapmasın.
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IStockService, StockService>();
             services.AddScoped<IProductService, ProductService>();

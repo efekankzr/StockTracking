@@ -7,9 +7,9 @@ namespace StockTracking.Persistence.Repositories
 {
     public class ProductRepository : GenericRepository<Product>, IProductRepository
     {
-        private readonly StockDbContext _context;
+        private readonly StockTrackingDbContext _context;
 
-        public ProductRepository(StockDbContext context) : base(context)
+        public ProductRepository(StockTrackingDbContext context) : base(context)
         {
             _context = context;
         }

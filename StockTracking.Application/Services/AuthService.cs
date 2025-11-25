@@ -1,51 +1,56 @@
-﻿using AutoMapper;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using StockTracking.Application.DTOs.Auth;
-using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
 using StockTracking.Application.Wrappers;
 using StockTracking.Domain.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace StockTracking.Application.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
 
-        public AuthService(IUnitOfWork unitOfWork, IConfiguration configuration)
+        public AuthService(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
         {
-            _unitOfWork = unitOfWork;
+            _userManager = userManager;
+            _signInManager = signInManager;
             _configuration = configuration;
         }
 
         public async Task<ServiceResponse<TokenDto>> LoginAsync(LoginDto request)
         {
-            var user = await _unitOfWork.Users.GetSingleAsync(u => u.Username == request.Username);
-            if (user == null) return new ServiceResponse<TokenDto>("Kullanıcı adı veya şifre hatalı.");
-
-            if (!VerifyPasswordHash(request.Password, user.PasswordHash))
-                return new ServiceResponse<TokenDto>("Kullanıcı adı veya şifre hatalı.");
+            var user = await _userManager.FindByNameAsync(request.Username);
+            if (user == null) return new ServiceResponse<TokenDto>("Kullanıcı bulunamadı.");
 
             if (!user.IsActive) return new ServiceResponse<TokenDto>("Hesap pasif.");
 
-            var tokenDto = GenerateTokenDto(user);
+            // Identity ile şifre kontrolü
+            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+
+            if (!result.Succeeded)
+                return new ServiceResponse<TokenDto>("Şifre hatalı.");
+
+            var tokenDto = await GenerateTokenDto(user);
             return new ServiceResponse<TokenDto>(tokenDto);
         }
 
-        // Helper Metotlar
-        private string GenerateToken(User user)
+        private async Task<TokenDto> GenerateTokenDto(User user)
         {
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "User";
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Role, userRole)
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
@@ -61,26 +66,14 @@ namespace StockTracking.Application.Services
                 signingCredentials: creds
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        private TokenDto GenerateTokenDto(User user)
-        {
             return new TokenDto
             {
-                AccessToken = GenerateToken(user),
-                Expiration = DateTime.Now.AddDays(1),
-                Username = user.Username,
+                AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                Expiration = now.AddDays(1),
                 UserId = user.Id,
-                Role = user.Role.ToString()
+                Username = user.UserName,
+                Role = userRole
             };
-        }
-
-        private bool VerifyPasswordHash(string password, string storedHash)
-        {
-            using var sha256 = SHA256.Create();
-            var inputHash = Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(password)));
-            return inputHash == storedHash;
         }
     }
 }

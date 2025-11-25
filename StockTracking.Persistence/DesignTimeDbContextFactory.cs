@@ -2,16 +2,16 @@
 using Microsoft.EntityFrameworkCore.Design;
 using StockTracking.Persistence.Context;
 
-public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<StockDbContext>
+public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<StockTrackingDbContext>
 {
-    public StockDbContext CreateDbContext(string[] args)
+    public StockTrackingDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<StockDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<StockTrackingDbContext>();
 
         optionsBuilder.UseSqlServer(
             "Server=localhost;Database=StockTrackingDb;Trusted_Connection=True;TrustServerCertificate=True"
         );
 
-        return new StockDbContext(optionsBuilder.Options);
+        return new StockTrackingDbContext(optionsBuilder.Options);
     }
 }

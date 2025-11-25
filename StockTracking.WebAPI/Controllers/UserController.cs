@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using StockTracking.Application.DTOs.Auth;
+using StockTracking.Application.DTOs.User;
 using StockTracking.Application.Interfaces.Services;
 using System.Threading.Tasks;
 

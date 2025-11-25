@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using StockTracking.Application.DTOs.Auth;
 using StockTracking.Application.DTOs.Category;
 using StockTracking.Application.DTOs.Product;
+using StockTracking.Application.DTOs.Role;
 using StockTracking.Application.DTOs.Sale;
 using StockTracking.Application.DTOs.Stock;
 using StockTracking.Application.DTOs.StockLog;
+using StockTracking.Application.DTOs.User;
 using StockTracking.Application.DTOs.Warehouse;
 using StockTracking.Domain.Entities;
 
@@ -15,14 +18,14 @@ namespace StockTracking.Application.Mapping
         public GeneralMapping()
         {
             // --- USER & AUTH MAPPING ---
-            CreateMap<User, UserDto>()
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
-
             CreateMap<CreateUserDto, User>();
-            CreateMap<User, UserDto>()
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()))
-                .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name));
 
+            CreateMap<User, UserDto>()
+                .ForMember(dest => dest.Role, opt => opt.Ignore())
+                .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : null));
+
+            // Role Mapping
+            CreateMap<IdentityRole<int>, RoleDto>();
 
             // --- CATEGORY MAPPING ---
             CreateMap<Category, CategoryDto>().ReverseMap();
@@ -66,7 +69,7 @@ namespace StockTracking.Application.Mapping
             CreateMap<Sale, SaleDto>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
                 .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name)) // Yeni Eklendi
-                .ForMember(dest => dest.SalesPerson, opt => opt.MapFrom(src => src.User.Username)) // veya FullName
+                .ForMember(dest => dest.SalesPerson, opt => opt.MapFrom(src => src.User.FullName)) // veya FullName
                 .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod.ToString())) // Enum -> String
                                                                                                                 // Snapshot fiyatlarını gösteriyoruz (Güncel fiyatı değil!)
                 .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.SnapshotSalePrice))
@@ -79,7 +82,7 @@ namespace StockTracking.Application.Mapping
             CreateMap<StockLog, StockLogDto>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
                 .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name))
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Username))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName))
                 .ForMember(dest => dest.ProcessType, opt => opt.MapFrom(src => src.ProcessType.ToString()));
         }
     }
