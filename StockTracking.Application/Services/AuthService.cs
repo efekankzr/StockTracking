@@ -29,121 +29,100 @@ namespace StockTracking.Application.Services
 
         public async Task<ServiceResponse<TokenDto>> LoginAsync(LoginDto request)
         {
-            // 1. Kullanıcıyı bul
             var user = await _unitOfWork.Users.GetSingleAsync(u => u.Username == request.Username);
+            if (user == null) return new ServiceResponse<TokenDto>("Kullanıcı adı veya şifre hatalı.");
 
-            if (user == null)
-                return new ServiceResponse<TokenDto>("Kullanıcı adı veya şifre hatalı.");
-
-            // 2. Şifre kontrolü
             if (!VerifyPasswordHash(request.Password, user.PasswordHash))
                 return new ServiceResponse<TokenDto>("Kullanıcı adı veya şifre hatalı.");
 
-            if (!user.IsActive)
-                return new ServiceResponse<TokenDto>("Kullanıcı hesabı pasif durumdadır.");
+            if (!user.IsActive) return new ServiceResponse<TokenDto>("Hesap pasif.");
 
-            // 3. Token Üretimi (DÜZELTİLEN KISIM BURASI)
-            // Önce string token'ı alıyoruz
-            var tokenString = GenerateToken(user);
-
-            // Sonra onu DTO nesnesine paketliyoruz
-            var tokenDto = new TokenDto
-            {
-                AccessToken = tokenString,
-                Expiration = DateTime.Now.AddDays(1), // Token ömrü
-                Username = user.Username,
-                UserId = user.Id,
-                Role = user.Role.ToString()
-            };
-
-            // Artık string değil, NESNE döndürüyoruz. 
-            // Böylece ServiceResponse bunu "Data" olarak algılayıp Success = true yapacak.
+            var tokenDto = GenerateTokenDto(user);
             return new ServiceResponse<TokenDto>(tokenDto);
         }
 
-        public async Task<ServiceResponse<bool>> RegisterAsync(RegisterDto request)
+        public async Task<ServiceResponse<bool>> CreateUserAsync(CreateUserDto request)
         {
-            // 1. Email veya Username var mı?
+            // 1. Username/Email Kontrolü
             var existingUser = await _unitOfWork.Users.GetSingleAsync(u => u.Email == request.Email || u.Username == request.Username);
             if (existingUser != null)
-                return new ServiceResponse<bool>("Bu kullanıcı adı veya e-posta zaten kayıtlı.");
+                return new ServiceResponse<bool>("Kullanıcı adı veya e-posta zaten kullanımda.");
 
-            // 2. DTO -> Entity çevrimi
+            // 2. Depo Kontrolü (Eğer Admin değilse depo geçerli mi?)
+            if (request.RoleId != (int)UserRole.Admin)
+            {
+                if (request.WarehouseId == null)
+                    return new ServiceResponse<bool>("Personel için depo seçimi zorunludur.");
+
+                var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(request.WarehouseId.Value);
+                if (warehouse == null)
+                    return new ServiceResponse<bool>("Seçilen depo bulunamadı.");
+            }
+
+            // 3. Mapping ve Hash
             var user = _mapper.Map<User>(request);
-
-            // 3. Şifreyi Hashle
             user.PasswordHash = CreatePasswordHash(request.Password);
-            user.Role = (UserRole)request.RoleId;
             user.IsActive = true;
+            user.Role = (UserRole)request.RoleId;
 
-            // 4. Kaydet
+            // Admin ise WarehouseId null olabilir, değilse gelen değer atanır.
+            if (user.Role == UserRole.Admin) user.WarehouseId = null;
+
             await _unitOfWork.Users.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
-            return new ServiceResponse<bool>(true, "Kullanıcı başarıyla oluşturuldu.");
+            return new ServiceResponse<bool>(true, "Personel başarıyla oluşturuldu.");
         }
 
-        // --- YARDIMCI METOTLAR (HELPER METHODS) ---
-
+        // Helpers
         private string GenerateToken(User user)
         {
-            // Token içindeki bilgiler (Claims)
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, user.Role.ToString())
-                // İstersen Email vb. ekleyebilirsin
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
-            var expiration = DateTime.Now.AddDays(1); // Token 1 gün geçerli olsun
+            var now = DateTime.Now;
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: expiration,
+                notBefore: now,
+                expires: now.AddDays(1),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        // Basit bir Hashing yöntemi (Daha profesyoneli için BCrypt kullanılabilir)
-        private string CreatePasswordHash(string password)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(bytes);
-            }
-        }
-
-        private bool VerifyPasswordHash(string password, string storedHash)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                var inputHash = Convert.ToBase64String(bytes);
-                return inputHash == storedHash;
-            }
-        }
-
-        // TokenDto oluşturucu (Helper olarak kullanmak istersen)
         private TokenDto GenerateTokenDto(User user)
         {
-            var tokenString = GenerateToken(user);
             return new TokenDto
             {
-                AccessToken = tokenString,
+                AccessToken = GenerateToken(user),
                 Expiration = DateTime.Now.AddDays(1),
                 Username = user.Username,
                 UserId = user.Id,
                 Role = user.Role.ToString()
             };
+        }
+
+        private string CreatePasswordHash(string password)
+        {
+            using var sha256 = SHA256.Create();
+            return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(password)));
+        }
+
+        private bool VerifyPasswordHash(string password, string storedHash)
+        {
+            using var sha256 = SHA256.Create();
+            return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(password))) == storedHash;
         }
     }
 }

@@ -8,7 +8,6 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<StockDbCon
     {
         var optionsBuilder = new DbContextOptionsBuilder<StockDbContext>();
 
-        // !!! Buraya senin Connection String gelecek !!!
         optionsBuilder.UseSqlServer(
             "Server=localhost;Database=StockTrackingDb;Trusted_Connection=True;TrustServerCertificate=True"
         );

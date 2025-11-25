@@ -12,7 +12,7 @@ using StockTracking.Persistence.Context;
 namespace StockTracking.Persistence.Migrations
 {
     [DbContext(typeof(StockDbContext))]
-    [Migration("20251122210736_InitialCreate")]
+    [Migration("20251124213638_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -59,6 +59,7 @@ namespace StockTracking.Persistence.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Barcode")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -92,6 +93,9 @@ namespace StockTracking.Persistence.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Barcode")
+                        .IsUnique();
 
                     b.HasIndex("CategoryId");
 
@@ -136,11 +140,16 @@ namespace StockTracking.Persistence.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("WarehouseId");
 
                     b.ToTable("Sales", (string)null);
                 });
@@ -167,9 +176,10 @@ namespace StockTracking.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
-
                     b.HasIndex("WarehouseId");
+
+                    b.HasIndex("ProductId", "WarehouseId")
+                        .IsUnique();
 
                     b.ToTable("Stocks", (string)null);
                 });
@@ -209,6 +219,8 @@ namespace StockTracking.Persistence.Migrations
 
                     b.HasIndex("ProductId");
 
+                    b.HasIndex("RelatedSaleId");
+
                     b.HasIndex("WarehouseId");
 
                     b.ToTable("StockLogs", (string)null);
@@ -239,8 +251,11 @@ namespace StockTracking.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
@@ -250,6 +265,9 @@ namespace StockTracking.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("WarehouseId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -258,7 +276,23 @@ namespace StockTracking.Persistence.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
+                    b.HasIndex("WarehouseId");
+
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedDate = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Email = "admin@stock.com",
+                            FullName = "System Administrator",
+                            IsActive = true,
+                            PasswordHash = "5b722b307fce6c9789665bc67eb7279794650e4249158c28137d476227727371",
+                            PhoneNumber = "5550000000",
+                            Role = 0,
+                            Username = "sysadmin"
+                        });
                 });
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Warehouse", b =>
@@ -270,7 +304,9 @@ namespace StockTracking.Persistence.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
@@ -294,7 +330,7 @@ namespace StockTracking.Persistence.Migrations
                     b.HasOne("StockTracking.Domain.Entities.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -303,7 +339,7 @@ namespace StockTracking.Persistence.Migrations
             modelBuilder.Entity("StockTracking.Domain.Entities.Sale", b =>
                 {
                     b.HasOne("StockTracking.Domain.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("Sales")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -314,9 +350,17 @@ namespace StockTracking.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("StockTracking.Domain.Entities.Warehouse", "Warehouse")
+                        .WithMany("Sales")
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Product");
 
                     b.Navigation("User");
+
+                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Stock", b =>
@@ -324,13 +368,13 @@ namespace StockTracking.Persistence.Migrations
                     b.HasOne("StockTracking.Domain.Entities.Product", "Product")
                         .WithMany("Stocks")
                         .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("StockTracking.Domain.Entities.Warehouse", "Warehouse")
                         .WithMany("Stocks")
                         .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Product");
@@ -347,20 +391,37 @@ namespace StockTracking.Persistence.Migrations
                         .IsRequired();
 
                     b.HasOne("StockTracking.Domain.Entities.Product", "Product")
-                        .WithMany()
+                        .WithMany("StockLogs")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("StockTracking.Domain.Entities.Warehouse", "Warehouse")
+                    b.HasOne("StockTracking.Domain.Entities.Sale", "RelatedSale")
                         .WithMany()
+                        .HasForeignKey("RelatedSaleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("StockTracking.Domain.Entities.Warehouse", "Warehouse")
+                        .WithMany("StockLogs")
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Product");
 
+                    b.Navigation("RelatedSale");
+
                     b.Navigation("User");
+
+                    b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("StockTracking.Domain.Entities.User", b =>
+                {
+                    b.HasOne("StockTracking.Domain.Entities.Warehouse", "Warehouse")
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Warehouse");
                 });
@@ -372,6 +433,10 @@ namespace StockTracking.Persistence.Migrations
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Product", b =>
                 {
+                    b.Navigation("Sales");
+
+                    b.Navigation("StockLogs");
+
                     b.Navigation("Stocks");
                 });
 
@@ -384,6 +449,10 @@ namespace StockTracking.Persistence.Migrations
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Warehouse", b =>
                 {
+                    b.Navigation("Sales");
+
+                    b.Navigation("StockLogs");
+
                     b.Navigation("Stocks");
                 });
 #pragma warning restore 612, 618

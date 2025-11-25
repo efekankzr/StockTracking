@@ -11,18 +11,14 @@ namespace StockTracking.Persistence
     {
         public static void AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
         {
-            // DbContext
             services.AddDbContext<StockDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            // Repositories & UnitOfWork
-            // Generic Repo'yu eklemeyi unutma
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            // Eğer özel repo kullanacaksan (ProductRepository gibi) onları da buraya ekle
             services.AddScoped<IProductRepository, ProductRepository>();
-            // services.AddScoped<IUserRepository, UserRepository>(); vs...
+            
         }
     }
 }

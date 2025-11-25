@@ -16,6 +16,16 @@ var builder = WebApplication.CreateBuilder(args);
 // ---------------------------------------------------------
 // 1. KATMAN SERVÝS KAYITLARI
 // ---------------------------------------------------------
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost",
+        builder => builder
+        .WithOrigins("http://localhost:3000") // Frontend'in adresi
+        .AllowAnyMethod()   // GET, POST, PUT, DELETE hepsine izin ver
+        .AllowAnyHeader()   // Token header'ýna izin ver
+        .AllowCredentials()); // Cookie/Auth bilgilerine izin ver
+});
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 
@@ -92,6 +102,7 @@ var app = builder.Build();
 // ---------------------------------------------------------
 // 5. MIDDLEWARE PIPELINE
 // ---------------------------------------------------------
+app.UseCors("AllowLocalhost");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

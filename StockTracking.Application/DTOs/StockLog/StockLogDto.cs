@@ -2,11 +2,14 @@
 {
     public class StockLogDto
     {
-        public DateTime Date { get; set; }
+        public int Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+
         public string ProductName { get; set; }
         public string WarehouseName { get; set; }
-        public string ProcessType { get; set; } // "Satış", "İade" vs.
-        public int ChangeAmount { get; set; } // +5, -3
         public string UserName { get; set; } // İşlemi yapan
+
+        public string ProcessType { get; set; } // "Satış", "Mal Kabul"
+        public int ChangeAmount { get; set; } // +10, -5
     }
 }

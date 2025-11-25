@@ -8,6 +8,7 @@ namespace StockTracking.Domain.Entities
         public DateTime TransactionDate { get; set; }
         public int UserId { get; set; }
         public int ProductId { get; set; }
+        public int WarehouseId { get; set; } // <--- EKLENDİ (Hangi şube sattı?)
         public int Quantity { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
 
@@ -17,7 +18,9 @@ namespace StockTracking.Domain.Entities
         public decimal SnapshotTaxBuying { get; set; }
         public decimal SnapshotTaxSelling { get; set; }
 
+        // İlişkiler
         public User User { get; set; }
         public Product Product { get; set; }
+        public Warehouse Warehouse { get; set; } // <--- EKLENDİ
     }
 }

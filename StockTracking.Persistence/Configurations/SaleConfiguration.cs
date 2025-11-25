@@ -11,22 +11,29 @@ namespace StockTracking.Persistence.Configurations
             builder.ToTable("Sales");
             builder.HasKey(s => s.Id);
 
-            // SNAPSHOT Fiyat Alanları (Decimal Hassasiyeti Önemli)
+            // Snapshot Parasal Değerler
             builder.Property(s => s.SnapshotPurchasePrice).HasColumnType("decimal(18,2)");
             builder.Property(s => s.SnapshotSalePrice).HasColumnType("decimal(18,2)");
             builder.Property(s => s.SnapshotTaxBuying).HasColumnType("decimal(18,2)");
             builder.Property(s => s.SnapshotTaxSelling).HasColumnType("decimal(18,2)");
 
-            // İlişkiler
+            // İlişkiler (DeleteBehavior.Restrict KRİTİKTİR)
+            // Ürün veya Kullanıcı silinse bile satış geçmişi RAPORLAR İÇİN KALMALIDIR.
+
             builder.HasOne(s => s.User)
-                .WithMany(u => u.Sales)
-                .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.Restrict); // Kullanıcı silinirse satış kayıtları silinmesin!
+                   .WithMany(u => u.Sales)
+                   .HasForeignKey(s => s.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(s => s.Product)
-                .WithMany() // Product tarafında "Sales" koleksiyonu tanımlamadıysak boş bırakırız
-                .HasForeignKey(s => s.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+                   .WithMany(p => p.Sales)
+                   .HasForeignKey(s => s.ProductId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(s => s.Warehouse)
+                   .WithMany(w => w.Sales)
+                   .HasForeignKey(s => s.WarehouseId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

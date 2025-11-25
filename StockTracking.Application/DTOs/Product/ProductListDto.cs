@@ -4,9 +4,9 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Barcode { get; set; }
         public string CategoryName { get; set; }
         public decimal SalePrice { get; set; }
-        public string Barcode { get; set; }
-        public int TotalStockQuantity { get; set; } // Tüm depolardaki toplam stok (Hesaplanacak)
+        public int TotalStockQuantity { get; set; } // Tüm depolardaki toplamı hesaplayacağız
     }
 }

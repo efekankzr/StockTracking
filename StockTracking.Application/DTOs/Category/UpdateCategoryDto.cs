@@ -1,9 +1,7 @@
 ﻿namespace StockTracking.Application.DTOs.Category
 {
-    public class UpdateCategoryDto
+    public class UpdateCategoryDto : CreateCategoryDto
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
     }
 }

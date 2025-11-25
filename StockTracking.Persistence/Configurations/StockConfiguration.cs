@@ -9,19 +9,24 @@ namespace StockTracking.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Stock> builder)
         {
             builder.ToTable("Stocks");
+
             builder.HasKey(s => s.Id);
 
-            // Stok miktarı eksiye düşmemeli (İş kuralı opsiyonel, veritabanında kısıtlamak istersen)
-            // builder.ToTable(t => t.HasCheckConstraint("CK_Stock_Quantity", "[Quantity] >= 0")); 
+            // UNIQUE CONSTRAINT: 
+            // Bir depoda aynı üründen iki satır olamaz. 
+            // (Örn: A Deposu'nda Kalem ürünü tek satırda toplanmalı, iki ayrı satır olmamalı)
+            builder.HasIndex(s => new { s.ProductId, s.WarehouseId }).IsUnique();
 
             // İlişkiler
             builder.HasOne(s => s.Product)
-                .WithMany(p => p.Stocks)
-                .HasForeignKey(s => s.ProductId);
+                   .WithMany(p => p.Stocks)
+                   .HasForeignKey(s => s.ProductId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(s => s.Warehouse)
-                .WithMany(w => w.Stocks)
-                .HasForeignKey(s => s.WarehouseId);
+                   .WithMany(w => w.Stocks)
+                   .HasForeignKey(s => s.WarehouseId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

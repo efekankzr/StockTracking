@@ -9,25 +9,29 @@ namespace StockTracking.Persistence.Configurations
         public void Configure(EntityTypeBuilder<StockLog> builder)
         {
             builder.ToTable("StockLogs");
-            builder.HasKey(sl => sl.Id);
+            builder.HasKey(l => l.Id);
 
             // İlişkiler
-            // Loglar kritiktir. Ürün veya Kullanıcı silinse bile log durmalı (Restrict).
+            builder.HasOne(l => l.Product)
+                   .WithMany(p => p.StockLogs)
+                   .HasForeignKey(l => l.ProductId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(sl => sl.Product)
-                .WithMany()
-                .HasForeignKey(sl => sl.ProductId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(l => l.Warehouse)
+                   .WithMany(w => w.StockLogs)
+                   .HasForeignKey(l => l.WarehouseId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(sl => sl.Warehouse)
-                .WithMany()
-                .HasForeignKey(sl => sl.WarehouseId)
-                .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(l => l.User)
+                   .WithMany(u => u.StockLogs)
+                   .HasForeignKey(l => l.CreatedByUserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(sl => sl.User)
-                .WithMany(u => u.StockLogs)
-                .HasForeignKey(sl => sl.CreatedByUserId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // Opsiyonel ilişki: Sale
+            builder.HasOne(l => l.RelatedSale)
+                   .WithMany() // Sale tarafında Log koleksiyonu tanımlamadık, gerek yok.
+                   .HasForeignKey(l => l.RelatedSaleId)
+                   .OnDelete(DeleteBehavior.SetNull); // Satış silinirse log kalsın ama ID null olsun.
         }
     }
 }

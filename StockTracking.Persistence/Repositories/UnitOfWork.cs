@@ -21,7 +21,6 @@ namespace StockTracking.Persistence.Repositories
             _context = context;
         }
 
-        // Singleton mantığı: Varsa döndür, yoksa new'le.
         public IProductRepository Products => _products ??= new ProductRepository(_context);
         public ICategoryRepository Categories => _categories ??= new CategoryRepository(_context);
         public IWarehouseRepository Warehouses => _warehouses ??= new WarehouseRepository(_context);
