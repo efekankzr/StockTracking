@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using StockTracking.Application.DTOs.Auth;
 
-namespace StockTracking.Application.Validations.Auth
+namespace StockTracking.Application.Validations.User
 {
     public class CreateUserValidator : AbstractValidator<CreateUserDto>
     {

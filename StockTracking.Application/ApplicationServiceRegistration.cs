@@ -19,6 +19,7 @@ namespace StockTracking.Application
             // BUSINESS SERVICES (Servislerini buraya ekle!)
             // Program.cs'de kirlilik yapmasın.
             services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IStockService, StockService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICategoryService, CategoryService>();

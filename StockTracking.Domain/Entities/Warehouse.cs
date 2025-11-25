@@ -7,17 +7,21 @@ namespace StockTracking.Domain.Entities
         public Warehouse()
         {
             Stocks = new HashSet<Stock>();
-            Sales = new HashSet<Sale>();      // <--- EKLENDİ
-            StockLogs = new HashSet<StockLog>(); // <--- EKLENDİ
+            Sales = new HashSet<Sale>();
+            StockLogs = new HashSet<StockLog>();
         }
 
         public string Name { get; set; }
         public string Address { get; set; }
-        public string ManagerName { get; set; }
 
-        // İlişkiler
+        public string City { get; set; }
+        public string District { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+
+
         public ICollection<Stock> Stocks { get; set; }
-        public ICollection<Sale> Sales { get; set; } // Bu deponun satışları
-        public ICollection<StockLog> StockLogs { get; set; } // Bu deponun hareketleri
+        public ICollection<Sale> Sales { get; set; }
+        public ICollection<StockLog> StockLogs { get; set; }
     }
 }

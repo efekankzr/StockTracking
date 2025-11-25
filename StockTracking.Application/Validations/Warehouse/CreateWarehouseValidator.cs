@@ -7,15 +7,14 @@ namespace StockTracking.Application.Validations.Warehouse
     {
         public CreateWarehouseValidator()
         {
-            RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("Depo adı boş geçilemez.")
-                .MaximumLength(100).WithMessage("Depo adı çok uzun.");
+            RuleFor(x => x.Name).NotEmpty().WithMessage("Depo adı zorunludur.");
+            RuleFor(x => x.Address).NotEmpty();
+            RuleFor(x => x.City).NotEmpty();
+            RuleFor(x => x.District).NotEmpty();
 
-            RuleFor(x => x.Address)
-                .NotEmpty().WithMessage("Adres bilgisi gereklidir.");
-
-            RuleFor(x => x.ManagerName)
-                .NotEmpty().WithMessage("Depo sorumlusu belirtilmelidir.");
+            // Dünya koordinat sınırları
+            RuleFor(x => x.Latitude).InclusiveBetween(-90, 90).WithMessage("Geçersiz enlem değeri.");
+            RuleFor(x => x.Longitude).InclusiveBetween(-180, 180).WithMessage("Geçersiz boylam değeri.");
         }
     }
 }

@@ -12,7 +12,7 @@ using StockTracking.Persistence.Context;
 namespace StockTracking.Persistence.Migrations
 {
     [DbContext(typeof(StockDbContext))]
-    [Migration("20251124213638_InitialCreate")]
+    [Migration("20251125091049_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -305,15 +305,27 @@ namespace StockTracking.Persistence.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ManagerName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<string>("District")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<string>("Name")
                         .IsRequired()

@@ -16,9 +16,12 @@ namespace StockTracking.Application.Mapping
         {
             // --- USER & AUTH MAPPING ---
             CreateMap<User, UserDto>()
-                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString())); // Enum -> String
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()));
 
-            CreateMap<CreateUserDto, User>(); // ReverseMap gerekmez, sadece kayıt olurken kullanıyoruz.
+            CreateMap<CreateUserDto, User>();
+            CreateMap<User, UserDto>()
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.ToString()))
+                .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name));
 
 
             // --- CATEGORY MAPPING ---

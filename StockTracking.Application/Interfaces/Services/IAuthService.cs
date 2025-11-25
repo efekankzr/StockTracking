@@ -6,6 +6,5 @@ namespace StockTracking.Application.Interfaces.Services
     public interface IAuthService
     {
         Task<ServiceResponse<TokenDto>> LoginAsync(LoginDto request);
-        Task<ServiceResponse<bool>> CreateUserAsync(CreateUserDto request);
     }
 }
