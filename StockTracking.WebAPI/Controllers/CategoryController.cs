@@ -8,7 +8,7 @@ namespace StockTracking.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Token Zorunlu
+    [Authorize(Roles = "Admin")]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _service;

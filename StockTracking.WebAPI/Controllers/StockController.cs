@@ -20,33 +20,26 @@ namespace StockTracking.WebAPI.Controllers
             _service = service;
         }
 
-        /// <summary>
-        /// Tüm depolardaki stok durumunu listeler.
-        /// </summary>
         [HttpGet]
+        [Authorize(Roles = "Admin,DepoSorumlusu,SatisPersoneli")]
         public async Task<IActionResult> GetAll()
         {
             var response = await _service.GetAllStocksAsync();
             return Ok(response);
         }
 
-        /// <summary>
-        /// Belirli bir ürünün hangi depolarda ne kadar olduğunu gösterir.
-        /// </summary>
         [HttpGet("product/{id}")]
+        [Authorize(Roles = "Admin,DepoSorumlusu,SatisPersoneli")]
         public async Task<IActionResult> GetByProduct(int id)
         {
             var response = await _service.GetStockByProductIdAsync(id);
             return Ok(response);
         }
 
-        /// <summary>
-        /// Manuel Stok Girişi (Mal Kabul, Sayım Fazlası vb.)
-        /// </summary>
         [HttpPost("entry")]
+        [Authorize(Roles = "Admin,DepoSorumlusu")]
         public async Task<IActionResult> CreateEntry(CreateStockEntryDto request)
         {
-            // Token'dan User ID'yi çekiyoruz (System.Security.Claims)
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userIdString))

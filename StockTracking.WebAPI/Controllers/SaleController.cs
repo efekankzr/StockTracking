@@ -21,23 +21,18 @@ namespace StockTracking.WebAPI.Controllers
             _service = service;
         }
 
-        /// <summary>
-        /// Tüm satış geçmişini listeler.
-        /// </summary>
         [HttpGet]
+        [Authorize(Roles = "Admin,SatisPersoneli")]
         public async Task<IActionResult> GetAll()
         {
             var response = await _service.GetAllSalesAsync();
             return Ok(response);
         }
 
-        /// <summary>
-        /// Yeni satış işlemi yapar ve stoktan düşer.
-        /// </summary>
         [HttpPost]
+        [Authorize(Roles = "SatisPersoneli")]
         public async Task<IActionResult> Create(CreateSaleDto request)
         {
-            // Token'dan User ID'yi al
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userIdString))
@@ -48,12 +43,13 @@ namespace StockTracking.WebAPI.Controllers
             var response = await _service.CreateSaleAsync(request, userId);
 
             if (!response.Success)
-                return BadRequest(response); // Yetersiz stok veya olmayan ürün hatası
+                return BadRequest(response);
 
             return Ok(response);
         }
 
         [HttpGet("report")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetDailyReport([FromQuery] DateTime date)
         {
             var response = await _service.GetDailyReportAsync(date);

@@ -8,7 +8,7 @@ namespace StockTracking.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")] // Sadece Admin görebilir
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -19,6 +19,7 @@ namespace StockTracking.WebAPI.Controllers
         }
 
         [HttpPost("create")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreateUserDto request)
         {
             var response = await _userService.CreateUserAsync(request);
@@ -27,6 +28,7 @@ namespace StockTracking.WebAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,SatisPersoneli")]
         public async Task<IActionResult> GetAll()
         {
             var response = await _userService.GetAllAsync();
