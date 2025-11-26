@@ -21,7 +21,6 @@ namespace StockTracking.Application.Services
 
         public async Task<ServiceResponse<List<StockDto>>> GetAllStocksAsync()
         {
-
             var stocks = await _unitOfWork.Stocks.GetAllWithDetailsAsync();
             return new ServiceResponse<List<StockDto>>(_mapper.Map<List<StockDto>>(stocks));
         }
@@ -42,23 +41,52 @@ namespace StockTracking.Application.Services
                 {
                     ProductId = request.ProductId,
                     WarehouseId = request.WarehouseId,
-                    Quantity = 0
+                    Quantity = 0,
+                    AverageCost = 0,
+                    LastPurchasePrice = 0
                 };
                 await _unitOfWork.Stocks.AddAsync(stock);
             }
 
-            int quantityChange = request.ProcessType switch
-            {
-                ProcessType.MalKabul => request.Quantity,
-                ProcessType.Iade => request.Quantity,
-                ProcessType.Zayi => -request.Quantity,
-                _ => 0
-            };
+            int quantityChange = 0;
+            decimal incomingPrice = request.UnitPrice ?? 0;
 
-            if (quantityChange == 0) return new ServiceResponse<bool>("Geçersiz işlem tipi.");
+            switch (request.ProcessType)
+            {
+                case ProcessType.MalKabul:
+                    quantityChange = request.Quantity;
+
+                    if (request.UnitPrice.HasValue && request.Quantity > 0)
+                    {
+                        // Ağırlıklı Ortalama Maliyet Hesabı
+                        decimal currentTotalValue = stock.Quantity * stock.AverageCost;
+                        decimal incomingTotalValue = request.Quantity * incomingPrice;
+                        int newTotalQuantity = stock.Quantity + request.Quantity;
+
+                        if (newTotalQuantity > 0)
+                        {
+                            stock.AverageCost = (currentTotalValue + incomingTotalValue) / newTotalQuantity;
+                        }
+
+                        // Son Alış Fiyatı
+                        stock.LastPurchasePrice = incomingPrice;
+                    }
+                    break;
+
+                case ProcessType.Iade:
+                    quantityChange = request.Quantity;
+                    break;
+
+                case ProcessType.Zayi:
+                    quantityChange = -request.Quantity;
+                    break;
+
+                default:
+                    return new ServiceResponse<bool>("Geçersiz işlem tipi.");
+            }
 
             if (stock.Quantity + quantityChange < 0)
-                return new ServiceResponse<bool>($"Yetersiz stok! Mevcut: {stock.Quantity}, Düşülmek İstenen: {request.Quantity}");
+                return new ServiceResponse<bool>($"Yetersiz stok! Mevcut: {stock.Quantity}");
 
             stock.Quantity += quantityChange;
             _unitOfWork.Stocks.Update(stock);
@@ -70,6 +98,10 @@ namespace StockTracking.Application.Services
                 ChangeAmount = quantityChange,
                 ProcessType = request.ProcessType,
                 CreatedByUserId = currentUserId,
+                CreatedDate = DateTime.Now,
+
+                InboundPrice = request.ProcessType == ProcessType.MalKabul ? request.UnitPrice : null,
+                InboundTaxRate = request.ProcessType == ProcessType.MalKabul ? request.TaxRate : null
             };
             await _unitOfWork.StockLogs.AddAsync(log);
 

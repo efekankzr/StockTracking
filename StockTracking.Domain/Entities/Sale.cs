@@ -1,26 +1,26 @@
 ﻿using StockTracking.Domain.Entities.Common;
 using StockTracking.Domain.Enums;
+using System.Net.ServerSentEvents;
 
 namespace StockTracking.Domain.Entities
 {
     public class Sale : BaseEntity
     {
+        public Sale()
+        {
+            SaleItems = new HashSet<SaleItem>();
+        }
+
+        public string TransactionNumber { get; set; }
         public DateTime TransactionDate { get; set; }
         public int UserId { get; set; }
-        public int ProductId { get; set; }
-        public int WarehouseId { get; set; } // <--- EKLENDİ (Hangi şube sattı?)
-        public int Quantity { get; set; }
+        public int WarehouseId { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
+        public decimal TotalAmount { get; set; }
 
-        // Snapshot Alanları
-        public decimal SnapshotPurchasePrice { get; set; }
-        public decimal SnapshotSalePrice { get; set; }
-        public decimal SnapshotTaxBuying { get; set; }
-        public decimal SnapshotTaxSelling { get; set; }
-
-        // İlişkiler
         public User User { get; set; }
-        public Product Product { get; set; }
-        public Warehouse Warehouse { get; set; } // <--- EKLENDİ
+        public Warehouse Warehouse { get; set; }
+
+        public ICollection<SaleItem> SaleItems { get; set; }
     }
 }

@@ -34,25 +34,21 @@ namespace StockTracking.WebAPI.Controllers
         public async Task<IActionResult> Create(CreateSaleDto request)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdString))
-                return Unauthorized(new ServiceResponse<bool>("Kimlik doğrulanamadı."));
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized(new ServiceResponse<bool>("Kimlik doğrulanamadı."));
 
             int userId = int.Parse(userIdString);
-
             var response = await _service.CreateSaleAsync(request, userId);
 
-            if (!response.Success)
-                return BadRequest(response);
-
+            if (!response.Success) return BadRequest(response);
             return Ok(response);
         }
 
         [HttpGet("report")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetDailyReport([FromQuery] DateTime date)
+        public async Task<IActionResult> GetDailyReport([FromQuery] DateTime? date)
         {
-            var response = await _service.GetDailyReportAsync(date);
+            var queryDate = date ?? DateTime.Now;
+            var response = await _service.GetDailyReportAsync(queryDate);
             return Ok(response);
         }
     }

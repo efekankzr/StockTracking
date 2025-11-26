@@ -24,14 +24,18 @@ namespace StockTracking.Application.Services
 
         public async Task<ServiceResponse<List<UserDto>>> GetAllAsync()
         {
-            var users = await _userManager.Users.Include(u => u.Warehouse).ToListAsync();
+            var users = await _userManager.Users
+                .Include(u => u.Warehouse)
+                .AsNoTracking()
+                .ToListAsync();
+
             var dtos = new List<UserDto>();
 
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
                 var dto = _mapper.Map<UserDto>(user);
-                dto.Role = roles.FirstOrDefault() ?? "User"; // Rolü manuel ekle
+                dto.Role = roles.FirstOrDefault() ?? "User";
                 dtos.Add(dto);
             }
 

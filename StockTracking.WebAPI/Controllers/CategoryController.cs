@@ -8,7 +8,7 @@ namespace StockTracking.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _service;
@@ -19,6 +19,7 @@ namespace StockTracking.WebAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,DepoSorumlusu")]
         public async Task<IActionResult> GetAll()
         {
             var response = await _service.GetAllAsync();
@@ -26,6 +27,7 @@ namespace StockTracking.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin,DepoSorumlusu")]
         public async Task<IActionResult> GetById(int id)
         {
             var response = await _service.GetByIdAsync(id);
@@ -34,6 +36,7 @@ namespace StockTracking.WebAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreateCategoryDto request)
         {
             var response = await _service.CreateAsync(request);
@@ -42,6 +45,7 @@ namespace StockTracking.WebAPI.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(UpdateCategoryDto request)
         {
             var response = await _service.UpdateAsync(request);
@@ -50,6 +54,7 @@ namespace StockTracking.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var response = await _service.DeleteAsync(id);

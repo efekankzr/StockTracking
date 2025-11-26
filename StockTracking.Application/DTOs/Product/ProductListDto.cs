@@ -7,6 +7,6 @@
         public string Barcode { get; set; }
         public string CategoryName { get; set; }
         public decimal SalePrice { get; set; }
-        public int TotalStockQuantity { get; set; } // Tüm depolardaki toplamı hesaplayacağız
+        public int TotalStockQuantity { get; set; }
     }
 }

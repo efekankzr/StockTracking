@@ -17,68 +17,56 @@ namespace StockTracking.Application.Mapping
     {
         public GeneralMapping()
         {
-            // --- USER & AUTH MAPPING ---
             CreateMap<CreateUserDto, User>();
 
             CreateMap<User, UserDto>()
                 .ForMember(dest => dest.Role, opt => opt.Ignore())
                 .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : null));
 
-            // Role Mapping
             CreateMap<IdentityRole<int>, RoleDto>();
 
-            // --- CATEGORY MAPPING ---
             CreateMap<Category, CategoryDto>().ReverseMap();
             CreateMap<CreateCategoryDto, Category>();
             CreateMap<UpdateCategoryDto, Category>();
 
 
-            // --- WAREHOUSE MAPPING ---
             CreateMap<Warehouse, WarehouseDto>().ReverseMap();
             CreateMap<CreateWarehouseDto, Warehouse>();
             CreateMap<UpdateWarehouseDto, Warehouse>();
 
 
-            // --- PRODUCT MAPPING ---
-            // 1. Detay Görüntüleme
             CreateMap<Product, ProductDto>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
                 .ReverseMap();
 
-            // 2. Liste Görüntüleme (Hesaplamalı Alanlar)
             CreateMap<Product, ProductListDto>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
-                // Ürünün tüm depolardaki toplam stoğunu hesapla:
                 .ForMember(dest => dest.TotalStockQuantity, opt => opt.MapFrom(src => src.Stocks.Sum(s => s.Quantity)));
 
-            // 3. Ekleme ve Güncelleme
             CreateMap<CreateProductDto, Product>();
             CreateMap<UpdateProductDto, Product>();
 
 
-            // --- STOCK MAPPING ---
             CreateMap<Stock, StockDto>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
                 .ForMember(dest => dest.Barcode, opt => opt.MapFrom(src => src.Product.Barcode))
                 .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name));
 
-            // CreateStockEntryDto için bir map'e gerek yok, manuel işliyoruz (Service içinde).
 
 
-            // --- SALE MAPPING (Kritik Bölüm) ---
             CreateMap<Sale, SaleDto>()
+                .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name))
+                .ForMember(dest => dest.SalesPerson, opt => opt.MapFrom(src => src.User.FullName))
+                .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod.ToString()));
+
+            CreateMap<SaleItem, SaleItemDto>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
-                .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name)) // Yeni Eklendi
-                .ForMember(dest => dest.SalesPerson, opt => opt.MapFrom(src => src.User.FullName)) // veya FullName
-                .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod.ToString())) // Enum -> String
-                                                                                                                // Snapshot fiyatlarını gösteriyoruz (Güncel fiyatı değil!)
-                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.SnapshotSalePrice))
-                .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.Quantity * src.SnapshotSalePrice));
+                .ForMember(dest => dest.Barcode, opt => opt.MapFrom(src => src.Product.Barcode))
+                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPriceWithVat));
 
             CreateMap<CreateSaleDto, Sale>();
 
 
-            // --- STOCK LOG MAPPING (Raporlama İçin) ---
             CreateMap<StockLog, StockLogDto>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
                 .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name))

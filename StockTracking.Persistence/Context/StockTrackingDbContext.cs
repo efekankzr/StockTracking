@@ -18,6 +18,7 @@ namespace StockTracking.Persistence.Context
         public DbSet<Stock> Stocks { get; set; }
         public DbSet<StockLog> StockLogs { get; set; }
         public DbSet<Sale> Sales { get; set; }
+        public DbSet<SaleItem> SaleItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

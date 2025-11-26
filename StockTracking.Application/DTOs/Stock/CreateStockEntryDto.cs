@@ -6,8 +6,11 @@ namespace StockTracking.Application.DTOs.Stock
     {
         public int ProductId { get; set; }
         public int WarehouseId { get; set; }
-        public int Quantity { get; set; } // Adet (Pozitif girilir)
-        public ProcessType ProcessType { get; set; } // 2: MalKabul, 4: Zayi
+        public int Quantity { get; set; }
+        public ProcessType ProcessType { get; set; }
         public string? Description { get; set; }
+
+        public decimal? UnitPrice { get; set; }
+        public decimal? TaxRate { get; set; }
     }
 }

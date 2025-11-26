@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using StockTracking.Application.DTOs.Report;
 using StockTracking.Application.DTOs.Sale;
 using StockTracking.Application.Interfaces.Repositories;
@@ -31,94 +32,114 @@ namespace StockTracking.Application.Services
 
         public async Task<ServiceResponse<SaleDto>> CreateSaleAsync(CreateSaleDto request, int userId)
         {
-            var product = await _unitOfWork.Products.GetByIdAsync(request.ProductId);
-            if (product == null) return new ServiceResponse<SaleDto>("Ürün bulunamadı.");
-
-            var stock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == request.ProductId && s.WarehouseId == request.WarehouseId);
-            if (stock == null || stock.Quantity < request.Quantity)
-                return new ServiceResponse<SaleDto>($"Yetersiz stok! Mevcut: {stock?.Quantity ?? 0}");
-
             var sale = new Sale
             {
-                ProductId = request.ProductId,
-                WarehouseId = request.WarehouseId,
-                UserId = userId,
-                Quantity = request.Quantity,
+                TransactionNumber = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
                 TransactionDate = DateTime.Now,
+                UserId = userId,
+                WarehouseId = request.WarehouseId,
                 PaymentMethod = request.PaymentMethod,
-
-                SnapshotPurchasePrice = product.PurchasePrice,
-                SnapshotSalePrice = product.SalePrice,
-                SnapshotTaxBuying = product.TaxRateBuying,
-                SnapshotTaxSelling = product.TaxRateSelling
+                TotalAmount = 0,
+                SaleItems = new List<SaleItem>()
             };
+
+            decimal totalVatAmount = 0;
+
+            foreach (var itemDto in request.Items)
+            {
+                var product = await _unitOfWork.Products.GetByIdAsync(itemDto.ProductId);
+                if (product == null) return new ServiceResponse<SaleDto>($"Ürün bulunamadı (ID: {itemDto.ProductId})");
+
+                var stock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == itemDto.ProductId && s.WarehouseId == request.WarehouseId);
+                if (stock == null || stock.Quantity < itemDto.Quantity)
+                    return new ServiceResponse<SaleDto>($"{product.Name} için yetersiz stok!");
+
+                decimal priceWithVat = itemDto.PriceWithVat ?? product.SalePrice;
+                decimal vatRate = itemDto.VatRate ?? product.TaxRateSelling;
+
+                if (request.PaymentMethod == PaymentMethod.KrediKarti && vatRate == 0)
+                    return new ServiceResponse<SaleDto>("Kredi kartı ile satışta KDV 0 olamaz!");
+
+                decimal netPrice = priceWithVat / (1 + (vatRate / 100));
+                decimal vatPerUnit = priceWithVat - netPrice;
+                decimal lineTotal = priceWithVat * itemDto.Quantity;
+                decimal lineTotalVat = vatPerUnit * itemDto.Quantity;
+
+                var saleItem = new SaleItem
+                {
+                    ProductId = itemDto.ProductId,
+                    Quantity = itemDto.Quantity,
+
+                    UnitPriceWithVat = priceWithVat,
+                    VatRate = vatRate,
+                    VatAmountTotal = lineTotalVat,
+                    LineTotal = lineTotal
+                };
+
+                sale.SaleItems.Add(saleItem);
+                sale.TotalAmount += lineTotal;
+                totalVatAmount += lineTotalVat;
+
+                stock.Quantity -= itemDto.Quantity;
+                _unitOfWork.Stocks.Update(stock);
+
+                var log = new StockLog
+                {
+                    ProductId = itemDto.ProductId,
+                    WarehouseId = request.WarehouseId,
+                    ChangeAmount = -itemDto.Quantity,
+                    ProcessType = ProcessType.Satis,
+                    CreatedByUserId = userId,
+                    CreatedDate = DateTime.Now
+                };
+                await _unitOfWork.StockLogs.AddAsync(log);
+            }
 
             await _unitOfWork.Sales.AddAsync(sale);
-
-            stock.Quantity -= request.Quantity;
-            _unitOfWork.Stocks.Update(stock);
-
-            var log = new StockLog
-            {
-                ProductId = request.ProductId,
-                WarehouseId = request.WarehouseId,
-                ChangeAmount = -request.Quantity,
-                ProcessType = ProcessType.Satis,
-                CreatedByUserId = userId,
-            };
-            await _unitOfWork.StockLogs.AddAsync(log);
-
-            // 6. Kaydet
             await _unitOfWork.SaveChangesAsync();
 
             var responseDto = _mapper.Map<SaleDto>(sale);
-            responseDto.ProductName = product.Name; // Manuel set etmek garanti olur
-
-            return new ServiceResponse<SaleDto>(responseDto, "Satış yapıldı.");
+            return new ServiceResponse<SaleDto>(responseDto, $"Satış başarılı. Toplam: {sale.TotalAmount:C2}");
         }
+
         public async Task<ServiceResponse<List<UserSalesReportDto>>> GetDailyReportAsync(DateTime date)
         {
-            var sales = await _unitOfWork.Sales.GetWhereAsync(x => x.TransactionDate.Date == date.Date);
-            var dailySales = await ((ISaleRepository)_unitOfWork.Sales).GetSalesByDateAsync(date);
-            var report = await SALES_TO_REPORT_CONVERTER(dailySales);
-            return new ServiceResponse<List<UserSalesReportDto>>(report);
-        }
+            var allUsers = await _userManager.Users.ToListAsync();
 
-        private async Task<List<UserSalesReportDto>> SALES_TO_REPORT_CONVERTER(IEnumerable<Sale> sales)
-        {
-            var reportList = sales
-                .GroupBy(s => s.User)
-                .Select(g => new UserSalesReportDto
+            var dailySales = await ((ISaleRepository)_unitOfWork.Sales).GetSalesByDateAsync(date);
+
+            var reportList = new List<UserSalesReportDto>();
+
+            foreach (var user in allUsers)
+            {
+                var userSales = dailySales.Where(s => s.UserId == user.Id).ToList();
+                var userRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Personel";
+
+                var reportItem = new UserSalesReportDto
                 {
-                    UserId = g.Key.Id,
-                    FullName = g.Key.FullName,
-                    Role = "Yükleniyor...",
-                    TotalQuantity = g.Sum(s => s.Quantity),
-                    TotalAmount = g.Sum(s => s.Quantity * s.SnapshotSalePrice),
-                    Sales = g.Select(s => new SaleDetailDto
+                    UserId = user.Id,
+                    FullName = user.FullName,
+                    Role = userRole,
+
+                    TotalQuantity = userSales.Sum(s => s.SaleItems.Sum(i => i.Quantity)),
+                    TotalAmount = userSales.Sum(s => s.TotalAmount),
+
+                    Sales = userSales.SelectMany(s => s.SaleItems.Select(i => new SaleDetailDto
                     {
                         SaleId = s.Id,
-                        ProductName = s.Product.Name,
-                        Barcode = s.Product.Barcode,
-                        Quantity = s.Quantity,
-                        UnitPrice = s.SnapshotSalePrice,
-                        TotalAmount = s.Quantity * s.SnapshotSalePrice,
+                        ProductName = i.Product.Name,
+                        Barcode = i.Product.Barcode,
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPriceWithVat,
+                        TotalAmount = i.LineTotal,
                         Time = s.TransactionDate
-                    }).ToList()
-                })
-                .ToList();
+                    })).OrderBy(x => x.Time).ToList()
+                };
 
-            foreach (var item in reportList)
-            {
-                var user = await _userManager.FindByIdAsync(item.UserId.ToString());
-                if (user != null)
-                {
-                    var roles = await _userManager.GetRolesAsync(user);
-                    item.Role = roles.FirstOrDefault() ?? "Personel";
-                }
+                reportList.Add(reportItem);
             }
 
-            return reportList.OrderByDescending(x => x.TotalAmount).ToList();
+            return new ServiceResponse<List<UserSalesReportDto>>(reportList.OrderByDescending(x => x.TotalAmount).ToList());
         }
     }
 }

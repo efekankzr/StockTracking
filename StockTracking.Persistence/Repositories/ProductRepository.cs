@@ -16,10 +16,9 @@ namespace StockTracking.Persistence.Repositories
 
         public async Task<List<Product>> GetAllWithDetailsAsync()
         {
-            // BURASI ÇOK ÖNEMLİ: .Include ile ilişkili tabloları bağlıyoruz
             return await _context.Products
-                .Include(p => p.Category) // Kategori ismini çekmek için
-                .Include(p => p.Stocks)   // Toplam stok hesaplamak için
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
                 .AsNoTracking()
                 .ToListAsync();
         }

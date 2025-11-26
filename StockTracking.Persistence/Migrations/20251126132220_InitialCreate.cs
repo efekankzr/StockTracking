@@ -91,9 +91,7 @@ namespace StockTracking.Persistence.Migrations
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Barcode = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Image = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PurchasePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     SalePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TaxRateBuying = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     TaxRateSelling = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -153,6 +151,8 @@ namespace StockTracking.Persistence.Migrations
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     WarehouseId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
+                    AverageCost = table.Column<decimal>(type: "decimal(18,4)", nullable: false, defaultValue: 0m),
+                    LastPurchasePrice = table.Column<decimal>(type: "decimal(18,4)", nullable: false, defaultValue: 0m),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -263,16 +263,13 @@ namespace StockTracking.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    TransactionNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
                     WarehouseId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
                     PaymentMethod = table.Column<int>(type: "int", nullable: false),
-                    SnapshotPurchasePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    SnapshotSalePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    SnapshotTaxBuying = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    SnapshotTaxSelling = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -288,14 +285,45 @@ namespace StockTracking.Persistence.Migrations
                         name: "FK_Sales_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Sales_Warehouses_WarehouseId",
                         column: x => x.WarehouseId,
                         principalTable: "Warehouses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SaleItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SaleId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    UnitPriceWithVat = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    VatRate = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    VatAmountTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    LineTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SaleItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SaleItems_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SaleItems_Sales_SaleId",
+                        column: x => x.SaleId,
+                        principalTable: "Sales",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -308,6 +336,8 @@ namespace StockTracking.Persistence.Migrations
                     WarehouseId = table.Column<int>(type: "int", nullable: false),
                     ChangeAmount = table.Column<int>(type: "int", nullable: false),
                     ProcessType = table.Column<int>(type: "int", nullable: false),
+                    InboundPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    InboundTaxRate = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     CreatedByUserId = table.Column<int>(type: "int", nullable: false),
                     RelatedSaleId = table.Column<int>(type: "int", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
@@ -397,6 +427,16 @@ namespace StockTracking.Persistence.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SaleItems_ProductId",
+                table: "SaleItems",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SaleItems_SaleId",
+                table: "SaleItems",
+                column: "SaleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Sales_ProductId",
                 table: "Sales",
                 column: "ProductId");
@@ -460,6 +500,9 @@ namespace StockTracking.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "SaleItems");
 
             migrationBuilder.DropTable(
                 name: "StockLogs");

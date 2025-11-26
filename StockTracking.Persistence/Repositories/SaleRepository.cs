@@ -14,7 +14,11 @@ namespace StockTracking.Persistence.Repositories
         {
             return await _context.Sales
                 .Include(s => s.User)
-                .Include(s => s.Product)
+                .Include(s => s.Warehouse)
+
+                .Include(s => s.SaleItems)
+                    .ThenInclude(si => si.Product)
+
                 .Where(s => s.TransactionDate.Date == date.Date)
                 .OrderByDescending(s => s.TransactionDate)
                 .AsNoTracking()

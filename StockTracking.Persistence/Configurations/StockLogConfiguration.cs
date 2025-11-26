@@ -27,11 +27,13 @@ namespace StockTracking.Persistence.Configurations
                    .HasForeignKey(l => l.CreatedByUserId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            // Opsiyonel ilişki: Sale
             builder.HasOne(l => l.RelatedSale)
-                   .WithMany() // Sale tarafında Log koleksiyonu tanımlamadık, gerek yok.
+                   .WithMany()
                    .HasForeignKey(l => l.RelatedSaleId)
-                   .OnDelete(DeleteBehavior.SetNull); // Satış silinirse log kalsın ama ID null olsun.
+                   .OnDelete(DeleteBehavior.SetNull);
+
+            builder.Property(sl => sl.InboundPrice).HasColumnType("decimal(18,2)");
+            builder.Property(sl => sl.InboundTaxRate).HasColumnType("decimal(18,2)");
         }
     }
 }

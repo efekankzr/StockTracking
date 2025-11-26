@@ -210,13 +210,7 @@ namespace StockTracking.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<decimal>("PurchasePrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<decimal>("SalePrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TaxRateBuying")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TaxRateSelling")
@@ -246,26 +240,18 @@ namespace StockTracking.Persistence.Migrations
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("SnapshotPurchasePrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("SnapshotSalePrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("SnapshotTaxBuying")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("SnapshotTaxSelling")
+                    b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -284,7 +270,7 @@ namespace StockTracking.Persistence.Migrations
                     b.ToTable("Sales", (string)null);
                 });
 
-            modelBuilder.Entity("StockTracking.Domain.Entities.Stock", b =>
+            modelBuilder.Entity("StockTracking.Domain.Entities.SaleItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -294,6 +280,57 @@ namespace StockTracking.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal>("LineTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SaleId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPriceWithVat")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("VatAmountTotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("VatRate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("SaleId");
+
+                    b.ToTable("SaleItems", (string)null);
+                });
+
+            modelBuilder.Entity("StockTracking.Domain.Entities.Stock", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AverageCost")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,4)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("LastPurchasePrice")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,4)")
+                        .HasDefaultValue(0m);
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
@@ -330,6 +367,12 @@ namespace StockTracking.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("InboundPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("InboundTaxRate")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ProcessType")
                         .HasColumnType("int");
@@ -543,11 +586,9 @@ namespace StockTracking.Persistence.Migrations
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Sale", b =>
                 {
-                    b.HasOne("StockTracking.Domain.Entities.Product", "Product")
+                    b.HasOne("StockTracking.Domain.Entities.Product", null)
                         .WithMany("Sales")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("ProductId");
 
                     b.HasOne("StockTracking.Domain.Entities.User", "User")
                         .WithMany("Sales")
@@ -561,11 +602,28 @@ namespace StockTracking.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Product");
-
                     b.Navigation("User");
 
                     b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("StockTracking.Domain.Entities.SaleItem", b =>
+                {
+                    b.HasOne("StockTracking.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StockTracking.Domain.Entities.Sale", "Sale")
+                        .WithMany("SaleItems")
+                        .HasForeignKey("SaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Sale");
                 });
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Stock", b =>
@@ -643,6 +701,11 @@ namespace StockTracking.Persistence.Migrations
                     b.Navigation("StockLogs");
 
                     b.Navigation("Stocks");
+                });
+
+            modelBuilder.Entity("StockTracking.Domain.Entities.Sale", b =>
+                {
+                    b.Navigation("SaleItems");
                 });
 
             modelBuilder.Entity("StockTracking.Domain.Entities.User", b =>

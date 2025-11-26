@@ -31,7 +31,6 @@ namespace StockTracking.Application.Services
 
             if (!user.IsActive) return new ServiceResponse<TokenDto>("Hesap pasif.");
 
-            // Identity ile şifre kontrolü
             var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
             if (!result.Succeeded)
@@ -52,6 +51,11 @@ namespace StockTracking.Application.Services
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Role, userRole)
             };
+
+            if (user.WarehouseId.HasValue)
+            {
+                claims.Add(new Claim("WarehouseId", user.WarehouseId.Value.ToString()));
+            }
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);

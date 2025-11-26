@@ -8,22 +8,21 @@ namespace StockTracking.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<Category> builder)
         {
-            builder.ToTable("Categories"); // Tablo adı
+            builder.ToTable("Categories");
 
-            builder.HasKey(c => c.Id); // PK
+            builder.HasKey(c => c.Id);
 
             builder.Property(c => c.Name)
                 .IsRequired()
-                .HasMaxLength(100); // NVARCHAR(100)
+                .HasMaxLength(100);
 
             builder.Property(c => c.Description)
                 .HasMaxLength(500);
 
-            // İlişkiler
             builder.HasMany(c => c.Products)
                    .WithOne(p => p.Category)
                    .HasForeignKey(p => p.CategoryId)
-                   .OnDelete(DeleteBehavior.Restrict); // Kategori silinirse ürünleri silme, hata ver.
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
