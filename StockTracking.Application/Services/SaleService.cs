@@ -108,12 +108,40 @@ namespace StockTracking.Application.Services
 
             var dailySales = await ((ISaleRepository)_unitOfWork.Sales).GetSalesByDateAsync(date);
 
+            var allStocks = await _unitOfWork.Stocks.GetAllAsync();
+
             var reportList = new List<UserSalesReportDto>();
 
             foreach (var user in allUsers)
             {
                 var userSales = dailySales.Where(s => s.UserId == user.Id).ToList();
                 var userRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Personel";
+
+                decimal totalCost = 0;
+
+                var salesDetails = userSales.SelectMany(s => s.SaleItems.Select(i =>
+                {
+                    var stockInfo = allStocks.FirstOrDefault(st => st.ProductId == i.ProductId && st.WarehouseId == s.WarehouseId);
+                    decimal currentCost = stockInfo?.AverageCost ?? 0;
+
+                    decimal profit = (i.UnitPriceWithVat - currentCost) * i.Quantity;
+                    totalCost += currentCost * i.Quantity;
+
+                    return new SaleDetailDto
+                    {
+                        SaleId = s.Id,
+                        ProductName = i.Product.Name,
+                        Barcode = i.Product.Barcode,
+                        Quantity = i.Quantity,
+
+                        UnitPrice = i.UnitPriceWithVat,
+                        TotalAmount = i.LineTotal,
+                        Time = s.TransactionDate,
+
+                        UnitCost = currentCost,
+                        Profit = profit
+                    };
+                })).OrderBy(x => x.Time).ToList();
 
                 var reportItem = new UserSalesReportDto
                 {
@@ -124,17 +152,17 @@ namespace StockTracking.Application.Services
                     TotalQuantity = userSales.Sum(s => s.SaleItems.Sum(i => i.Quantity)),
                     TotalAmount = userSales.Sum(s => s.TotalAmount),
 
-                    Sales = userSales.SelectMany(s => s.SaleItems.Select(i => new SaleDetailDto
-                    {
-                        SaleId = s.Id,
-                        ProductName = i.Product.Name,
-                        Barcode = i.Product.Barcode,
-                        Quantity = i.Quantity,
-                        UnitPrice = i.UnitPriceWithVat,
-                        TotalAmount = i.LineTotal,
-                        Time = s.TransactionDate
-                    })).OrderBy(x => x.Time).ToList()
+                    TotalCost = totalCost,
+                    TotalProfit = salesDetails.Sum(x => x.Profit),
+                    ProfitMargin = 0, // Aşağıda hesaplanacak
+
+                    Sales = salesDetails
                 };
+
+                if (reportItem.TotalAmount > 0)
+                {
+                    reportItem.ProfitMargin = (reportItem.TotalProfit / reportItem.TotalAmount) * 100;
+                }
 
                 reportList.Add(reportItem);
             }
