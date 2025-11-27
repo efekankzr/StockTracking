@@ -22,6 +22,7 @@ namespace StockTracking.Application
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IWarehouseService, WarehouseService>();
             services.AddScoped<ISaleService, SaleService>();
+            services.AddScoped<ITransferService, TransferService>();
         }
     }
 }

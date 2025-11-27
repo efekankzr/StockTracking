@@ -37,6 +37,7 @@ namespace StockTracking.Application.Services
                 TransactionNumber = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
                 TransactionDate = DateTime.Now,
                 UserId = userId,
+                ActualSalesPersonId = request.ActualSalesPersonId ?? userId,
                 WarehouseId = request.WarehouseId,
                 PaymentMethod = request.PaymentMethod,
                 TotalAmount = 0,

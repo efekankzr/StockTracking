@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using StockTracking.Application.DTOs.Warehouse;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
 using StockTracking.Application.Wrappers;
 using StockTracking.Domain.Entities;
+using System.Text.RegularExpressions;
 
 namespace StockTracking.Application.Services
 {
@@ -11,11 +13,15 @@ namespace StockTracking.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
 
-        public WarehouseService(IUnitOfWork unitOfWork, IMapper mapper)
+        public WarehouseService(IUnitOfWork unitOfWork, IMapper mapper, UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         public async Task<ServiceResponse<List<WarehouseDto>>> GetAllAsync()
@@ -39,30 +45,47 @@ namespace StockTracking.Application.Services
 
             var warehouse = _mapper.Map<Warehouse>(request);
             await _unitOfWork.Warehouses.AddAsync(warehouse);
-
             await _unitOfWork.SaveChangesAsync();
 
             var products = await _unitOfWork.Products.GetAllAsync();
-
             if (products.Count > 0)
             {
                 var newStocks = new List<Stock>();
-
                 foreach (var product in products)
                 {
-                    newStocks.Add(new Stock
-                    {
-                        WarehouseId = warehouse.Id,
-                        ProductId = product.Id,
-                        Quantity = 0
-                    });
+                    newStocks.Add(new Stock { WarehouseId = warehouse.Id, ProductId = product.Id, Quantity = 0, AverageCost = 0, LastPurchasePrice = 0 });
                 }
-
                 await _unitOfWork.Stocks.AddRangeAsync(newStocks);
                 await _unitOfWork.SaveChangesAsync();
             }
 
-            return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse), "Depo açıldı ve ürün stokları 0 olarak tanımlandı.");
+            string cleanName = CleanUsername(warehouse.Name);
+            string password = "Password123!";
+
+            var managerUser = new User
+            {
+                FullName = $"{request.Name} Yöneticisi",
+                UserName = $"{cleanName}_yonetim",
+                Email = $"{cleanName}_manager@stock.com",
+                PhoneNumber = "5550000000",
+                WarehouseId = warehouse.Id,
+                IsActive = true
+            };
+            await CreateUserWithRole(managerUser, password, "DepoSorumlusu");
+
+            var salesUser = new User
+            {
+                FullName = $"{request.Name} Kasa",
+                UserName = $"{cleanName}_kasa",
+                Email = $"{cleanName}_sales@stock.com",
+                PhoneNumber = "5550000000",
+                WarehouseId = warehouse.Id,
+                IsActive = true
+            };
+            await CreateUserWithRole(salesUser, password, "SatisPersoneli");
+
+            return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse),
+                $"Depo açıldı. Kullanıcılar oluşturuldu: {managerUser.UserName} ve {salesUser.UserName} (Şifre: {password})");
         }
 
         public async Task<ServiceResponse<bool>> UpdateAsync(UpdateWarehouseDto request)
@@ -84,6 +107,29 @@ namespace StockTracking.Application.Services
             _unitOfWork.Warehouses.Delete(warehouse);
             await _unitOfWork.SaveChangesAsync();
             return new ServiceResponse<bool>(true, "Depo silindi.");
+        }
+
+        // --- HELPER METOTLAR ---
+        private async Task CreateUserWithRole(User user, string password, string role)
+        {
+            var result = await _userManager.CreateAsync(user, password);
+            if (result.Succeeded)
+            {
+                if (!await _roleManager.RoleExistsAsync(role))
+                    await _roleManager.CreateAsync(new IdentityRole<int>(role));
+
+                await _userManager.AddToRoleAsync(user, role);
+            }
+        }
+
+        private string CleanUsername(string text)
+        {
+            string unaccented = text.ToLower()
+                .Replace('ı', 'i').Replace('ğ', 'g').Replace('ü', 'u')
+                .Replace('ş', 's').Replace('ö', 'o').Replace('ç', 'c')
+                .Replace(' ', '_');
+
+            return Regex.Replace(unaccented, "[^a-z0-9_]", "");
         }
     }
 }

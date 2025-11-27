@@ -12,7 +12,6 @@
 
         public decimal TotalAmount { get; set; }
 
-        // Fişin içindeki ürünler (List)
         public List<SaleItemDto> SaleItems { get; set; }
     }
 }

@@ -18,7 +18,13 @@ namespace StockTracking.Persistence
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.AddScoped<IProductRepository, ProductRepository>();
-            
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+            services.AddScoped<IStockRepository, StockRepository>();
+            services.AddScoped<IStockLogRepository, StockLogRepository>();
+            services.AddScoped<ISaleRepository, SaleRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<ITransferRepository, TransferRepository>();
         }
     }
 }

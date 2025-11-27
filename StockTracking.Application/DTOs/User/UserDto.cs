@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Application.DTOs.Auth
+﻿namespace StockTracking.Application.DTOs.User
 {
     public class UserDto
     {
@@ -8,7 +8,7 @@
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string Role { get; set; }
-        public string? WarehouseName { get; set; } // Opsiyonel: Hangi depoda çalışıyor?
+        public string? WarehouseName { get; set; }
         public bool IsActive { get; set; }
     }
 }

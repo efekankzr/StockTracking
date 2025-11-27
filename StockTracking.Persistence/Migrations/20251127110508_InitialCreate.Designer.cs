@@ -12,7 +12,7 @@ using StockTracking.Persistence.Context;
 namespace StockTracking.Persistence.Migrations
 {
     [DbContext(typeof(StockTrackingDbContext))]
-    [Migration("20251126132220_InitialCreate")]
+    [Migration("20251127110508_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -237,13 +237,13 @@ namespace StockTracking.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("ActualSalesPersonId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("PaymentMethod")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalAmount")
@@ -264,7 +264,7 @@ namespace StockTracking.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ActualSalesPersonId");
 
                     b.HasIndex("UserId");
 
@@ -290,6 +290,9 @@ namespace StockTracking.Persistence.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ProductId1")
+                        .HasColumnType("int");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
@@ -308,6 +311,8 @@ namespace StockTracking.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductId1");
 
                     b.HasIndex("SaleId");
 
@@ -400,6 +405,57 @@ namespace StockTracking.Persistence.Migrations
                     b.HasIndex("WarehouseId");
 
                     b.ToTable("StockLogs", (string)null);
+                });
+
+            modelBuilder.Entity("StockTracking.Domain.Entities.StockTransfer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("ApprovedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ApprovedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SourceWarehouseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TargetWarehouseId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransferNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("SourceWarehouseId");
+
+                    b.HasIndex("TargetWarehouseId");
+
+                    b.ToTable("StockTransfers", (string)null);
                 });
 
             modelBuilder.Entity("StockTracking.Domain.Entities.User", b =>
@@ -589,9 +645,10 @@ namespace StockTracking.Persistence.Migrations
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Sale", b =>
                 {
-                    b.HasOne("StockTracking.Domain.Entities.Product", null)
-                        .WithMany("Sales")
-                        .HasForeignKey("ProductId");
+                    b.HasOne("StockTracking.Domain.Entities.User", "ActualSalesPerson")
+                        .WithMany()
+                        .HasForeignKey("ActualSalesPersonId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("StockTracking.Domain.Entities.User", "User")
                         .WithMany("Sales")
@@ -605,6 +662,8 @@ namespace StockTracking.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ActualSalesPerson");
+
                     b.Navigation("User");
 
                     b.Navigation("Warehouse");
@@ -617,6 +676,10 @@ namespace StockTracking.Persistence.Migrations
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("StockTracking.Domain.Entities.Product", null)
+                        .WithMany("SaleItems")
+                        .HasForeignKey("ProductId1");
 
                     b.HasOne("StockTracking.Domain.Entities.Sale", "Sale")
                         .WithMany("SaleItems")
@@ -682,6 +745,41 @@ namespace StockTracking.Persistence.Migrations
                     b.Navigation("Warehouse");
                 });
 
+            modelBuilder.Entity("StockTracking.Domain.Entities.StockTransfer", b =>
+                {
+                    b.HasOne("StockTracking.Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StockTracking.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StockTracking.Domain.Entities.Warehouse", "SourceWarehouse")
+                        .WithMany()
+                        .HasForeignKey("SourceWarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StockTracking.Domain.Entities.Warehouse", "TargetWarehouse")
+                        .WithMany()
+                        .HasForeignKey("TargetWarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("SourceWarehouse");
+
+                    b.Navigation("TargetWarehouse");
+                });
+
             modelBuilder.Entity("StockTracking.Domain.Entities.User", b =>
                 {
                     b.HasOne("StockTracking.Domain.Entities.Warehouse", "Warehouse")
@@ -699,7 +797,7 @@ namespace StockTracking.Persistence.Migrations
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Product", b =>
                 {
-                    b.Navigation("Sales");
+                    b.Navigation("SaleItems");
 
                     b.Navigation("StockLogs");
 

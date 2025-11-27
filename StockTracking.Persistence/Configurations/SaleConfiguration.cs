@@ -28,6 +28,11 @@ namespace StockTracking.Persistence.Configurations
                    .WithOne(i => i.Sale)
                    .HasForeignKey(i => i.SaleId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(s => s.ActualSalesPerson)
+                   .WithMany()
+                   .HasForeignKey(s => s.ActualSalesPersonId)
+                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

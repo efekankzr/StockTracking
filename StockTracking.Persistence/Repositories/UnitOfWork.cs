@@ -7,7 +7,6 @@ namespace StockTracking.Persistence.Repositories
     {
         private readonly StockTrackingDbContext _context;
 
-        // Repository backing fields
         private IProductRepository _products;
         private ICategoryRepository _categories;
         private IWarehouseRepository _warehouses;
@@ -15,6 +14,7 @@ namespace StockTracking.Persistence.Repositories
         private IStockLogRepository _stockLogs;
         private ISaleRepository _sales;
         private IUserRepository _users;
+        private ITransferRepository _stockTransfers;
 
         public UnitOfWork(StockTrackingDbContext context)
         {
@@ -28,6 +28,9 @@ namespace StockTracking.Persistence.Repositories
         public IStockLogRepository StockLogs => _stockLogs ??= new StockLogRepository(_context);
         public ISaleRepository Sales => _sales ??= new SaleRepository(_context);
         public IUserRepository Users => _users ??= new UserRepository(_context);
+
+        // YENİ
+        public ITransferRepository StockTransfers => _stockTransfers ??= new TransferRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

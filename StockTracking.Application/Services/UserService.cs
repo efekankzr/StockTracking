@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using StockTracking.Application.DTOs.Auth;
 using StockTracking.Application.DTOs.User;
 using StockTracking.Application.Interfaces.Services;
 using StockTracking.Application.Wrappers;

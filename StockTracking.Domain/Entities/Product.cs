@@ -7,7 +7,7 @@ namespace StockTracking.Domain.Entities
         public Product()
         {
             Stocks = new HashSet<Stock>();
-            Sales = new HashSet<Sale>();
+            SaleItems = new HashSet<SaleItem>();
             StockLogs = new HashSet<StockLog>();
         }
 
@@ -15,13 +15,16 @@ namespace StockTracking.Domain.Entities
         public string Name { get; set; }
         public string Barcode { get; set; }
         public string? Image { get; set; }
+
         public decimal SalePrice { get; set; }
         public decimal TaxRateSelling { get; set; }
+
         public bool IsDeleted { get; set; }
 
         public Category Category { get; set; }
         public ICollection<Stock> Stocks { get; set; }
-        public ICollection<Sale> Sales { get; set; }
+
+        public ICollection<SaleItem> SaleItems { get; set; }
         public ICollection<StockLog> StockLogs { get; set; }
     }
 }

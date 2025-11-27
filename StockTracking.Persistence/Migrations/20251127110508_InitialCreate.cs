@@ -266,15 +266,21 @@ namespace StockTracking.Persistence.Migrations
                     TransactionNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
+                    ActualSalesPersonId = table.Column<int>(type: "int", nullable: true),
                     WarehouseId = table.Column<int>(type: "int", nullable: false),
                     PaymentMethod = table.Column<int>(type: "int", nullable: false),
                     TotalAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Sales", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Sales_AspNetUsers_ActualSalesPersonId",
+                        column: x => x.ActualSalesPersonId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Sales_AspNetUsers_UserId",
                         column: x => x.UserId,
@@ -282,13 +288,54 @@ namespace StockTracking.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Sales_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "Id");
-                    table.ForeignKey(
                         name: "FK_Sales_Warehouses_WarehouseId",
                         column: x => x.WarehouseId,
+                        principalTable: "Warehouses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StockTransfers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TransferNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SourceWarehouseId = table.Column<int>(type: "int", nullable: false),
+                    TargetWarehouseId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CreatedByUserId = table.Column<int>(type: "int", nullable: false),
+                    ApprovedByUserId = table.Column<int>(type: "int", nullable: true),
+                    ApprovedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StockTransfers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StockTransfers_AspNetUsers_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StockTransfers_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StockTransfers_Warehouses_SourceWarehouseId",
+                        column: x => x.SourceWarehouseId,
+                        principalTable: "Warehouses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StockTransfers_Warehouses_TargetWarehouseId",
+                        column: x => x.TargetWarehouseId,
                         principalTable: "Warehouses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -307,6 +354,7 @@ namespace StockTracking.Persistence.Migrations
                     VatRate = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     VatAmountTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     LineTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ProductId1 = table.Column<int>(type: "int", nullable: true),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -318,6 +366,11 @@ namespace StockTracking.Persistence.Migrations
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SaleItems_Products_ProductId1",
+                        column: x => x.ProductId1,
+                        principalTable: "Products",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_SaleItems_Sales_SaleId",
                         column: x => x.SaleId,
@@ -432,14 +485,19 @@ namespace StockTracking.Persistence.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SaleItems_ProductId1",
+                table: "SaleItems",
+                column: "ProductId1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SaleItems_SaleId",
                 table: "SaleItems",
                 column: "SaleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Sales_ProductId",
+                name: "IX_Sales_ActualSalesPersonId",
                 table: "Sales",
-                column: "ProductId");
+                column: "ActualSalesPersonId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Sales_UserId",
@@ -481,6 +539,26 @@ namespace StockTracking.Persistence.Migrations
                 name: "IX_Stocks_WarehouseId",
                 table: "Stocks",
                 column: "WarehouseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockTransfers_CreatedByUserId",
+                table: "StockTransfers",
+                column: "CreatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockTransfers_ProductId",
+                table: "StockTransfers",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockTransfers_SourceWarehouseId",
+                table: "StockTransfers",
+                column: "SourceWarehouseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StockTransfers_TargetWarehouseId",
+                table: "StockTransfers",
+                column: "TargetWarehouseId");
         }
 
         /// <inheritdoc />
@@ -511,22 +589,25 @@ namespace StockTracking.Persistence.Migrations
                 name: "Stocks");
 
             migrationBuilder.DropTable(
+                name: "StockTransfers");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Sales");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
                 name: "Products");
 
             migrationBuilder.DropTable(
-                name: "Warehouses");
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "Categories");
+
+            migrationBuilder.DropTable(
+                name: "Warehouses");
         }
     }
 }

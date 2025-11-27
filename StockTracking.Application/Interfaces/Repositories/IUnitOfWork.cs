@@ -9,7 +9,7 @@
         IStockLogRepository StockLogs { get; }
         ISaleRepository Sales { get; }
         IUserRepository Users { get; }
-
+        ITransferRepository StockTransfers { get; }
         Task<int> SaveChangesAsync();
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StockTracking.Application;
@@ -21,43 +22,36 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. KATMAN SERVÝS KAYITLARI
 // ---------------------------------------------------------
 
-// CORS Politikasý
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost",
         b => b
-        .WithOrigins("http://localhost:3000") // Frontend adresi
+        .WithOrigins("http://localhost:3000")
         .AllowAnyMethod()
         .AllowAnyHeader()
         .AllowCredentials());
 });
 
-// Persistence ve Application Katmanlarý
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 
-// --- MICROSOFT IDENTITY AYARLARI (YENÝ) ---
+// --- MICROSOFT IDENTITY AYARLARI ---
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {
-    // Þifre Kurallarý (Development için basit tuttum)
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireLowercase = false;
-
-    // Kullanýcý Kurallarý
     options.User.RequireUniqueEmail = true;
 })
-.AddEntityFrameworkStores<StockTrackingDbContext>() // Context ile baðla
-.AddDefaultTokenProviders(); // Token iþlemleri için
-
+.AddEntityFrameworkStores<StockTrackingDbContext>()
+.AddDefaultTokenProviders();
 
 // ---------------------------------------------------------
-// 2. CONTROLLER & FLUENT VALIDATION
+// 2. CONTROLLER & VALIDATION
 // ---------------------------------------------------------
 builder.Services.AddControllers();
-
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddFluentValidationClientsideAdapters();
 
@@ -91,7 +85,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -138,15 +132,20 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// ---------------------------------------------------------
+// 6. DATA SEEDING (Otomatik Veri Ekleme)
+// ---------------------------------------------------------
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        SeedData.Initialize(services).Wait();
+        await SeedData.Initialize(services);
     }
     catch (Exception ex)
     {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Veritabaný seed edilirken bir hata oluþtu.");
     }
 }
 
