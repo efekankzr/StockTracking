@@ -41,6 +41,7 @@ namespace StockTracking.Application.Services
                 WarehouseId = request.WarehouseId,
                 PaymentMethod = request.PaymentMethod,
                 TotalAmount = 0,
+                TotalVatAmount = 0,
                 SaleItems = new List<SaleItem>()
             };
 
@@ -70,16 +71,15 @@ namespace StockTracking.Application.Services
                 {
                     ProductId = itemDto.ProductId,
                     Quantity = itemDto.Quantity,
-
-                    UnitPriceWithVat = priceWithVat,
+                    UnitCost = stock.AverageCost,
+                    UnitPrice = priceWithVat,
                     VatRate = vatRate,
-                    VatAmountTotal = lineTotalVat,
-                    LineTotal = lineTotal
+                    VatAmount = lineTotalVat
                 };
 
                 sale.SaleItems.Add(saleItem);
                 sale.TotalAmount += lineTotal;
-                totalVatAmount += lineTotalVat;
+                sale.TotalVatAmount += lineTotalVat;
 
                 stock.Quantity -= itemDto.Quantity;
                 _unitOfWork.Stocks.Update(stock);
@@ -106,16 +106,14 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<List<UserSalesReportDto>>> GetDailyReportAsync(DateTime date)
         {
             var allUsers = await _userManager.Users.ToListAsync();
-
             var dailySales = await ((ISaleRepository)_unitOfWork.Sales).GetSalesByDateAsync(date);
-
             var allStocks = await _unitOfWork.Stocks.GetAllAsync();
 
             var reportList = new List<UserSalesReportDto>();
 
             foreach (var user in allUsers)
             {
-                var userSales = dailySales.Where(s => s.UserId == user.Id).ToList();
+                var userSales = dailySales.Where(s => s.ActualSalesPersonId == user.Id).ToList();
                 var userRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Personel";
 
                 decimal totalCost = 0;
@@ -125,7 +123,7 @@ namespace StockTracking.Application.Services
                     var stockInfo = allStocks.FirstOrDefault(st => st.ProductId == i.ProductId && st.WarehouseId == s.WarehouseId);
                     decimal currentCost = stockInfo?.AverageCost ?? 0;
 
-                    decimal profit = (i.UnitPriceWithVat - currentCost) * i.Quantity;
+                    decimal profit = (i.UnitPrice - currentCost) * i.Quantity;
                     totalCost += currentCost * i.Quantity;
 
                     return new SaleDetailDto
@@ -134,11 +132,9 @@ namespace StockTracking.Application.Services
                         ProductName = i.Product.Name,
                         Barcode = i.Product.Barcode,
                         Quantity = i.Quantity,
-
-                        UnitPrice = i.UnitPriceWithVat,
-                        TotalAmount = i.LineTotal,
+                        UnitPrice = i.UnitPrice,
+                        TotalAmount = i.Quantity * i.UnitPrice,
                         Time = s.TransactionDate,
-
                         UnitCost = currentCost,
                         Profit = profit
                     };
@@ -149,14 +145,11 @@ namespace StockTracking.Application.Services
                     UserId = user.Id,
                     FullName = user.FullName,
                     Role = userRole,
-
-                    TotalQuantity = userSales.Sum(s => s.SaleItems.Sum(i => i.Quantity)),
+                    TotalQuantity = salesDetails.Sum(x => x.Quantity),
                     TotalAmount = userSales.Sum(s => s.TotalAmount),
-
                     TotalCost = totalCost,
                     TotalProfit = salesDetails.Sum(x => x.Profit),
-                    ProfitMargin = 0, // Aşağıda hesaplanacak
-
+                    ProfitMargin = 0,
                     Sales = salesDetails
                 };
 
@@ -169,6 +162,43 @@ namespace StockTracking.Application.Services
             }
 
             return new ServiceResponse<List<UserSalesReportDto>>(reportList.OrderByDescending(x => x.TotalAmount).ToList());
+        }
+
+        public async Task<ServiceResponse<DashboardSummaryDto>> GetDashboardSummaryAsync()
+        {
+            var summary = new DashboardSummaryDto();
+            var today = DateTime.Today;
+
+            var allSales = await _unitOfWork.Sales.GetAllAsync();
+
+            summary.TotalRevenue = allSales.Sum(s => s.TotalAmount);
+
+            summary.DailyRevenue = allSales
+                .Where(s => s.TransactionDate.Date == today)
+                .Sum(s => s.TotalAmount);
+
+            summary.MonthlyRevenue = allSales
+                .Where(s => s.TransactionDate.Month == today.Month && s.TransactionDate.Year == today.Year)
+                .Sum(s => s.TotalAmount);
+
+            var stocks = await _unitOfWork.Stocks.GetAllAsync();
+            summary.TotalStockQuantity = stocks.Sum(s => s.Quantity);
+
+            summary.TotalEmployees = await _userManager.Users.CountAsync(u => u.UserName != "sysadmin");
+
+            var lastSales = await ((ISaleRepository)_unitOfWork.Sales).GetLatestSalesAsync(5);
+
+            summary.LatestSales = lastSales.Select(s => new LatestTransactionDto
+            {
+                Id = s.Id,
+                TransactionNumber = s.TransactionNumber,
+                Date = s.TransactionDate,
+                SalesPerson = s.ActualSalesPerson?.FullName ?? s.User.FullName,
+                Warehouse = s.Warehouse.Name,
+                Amount = s.TotalAmount
+            }).ToList();
+
+            return new ServiceResponse<DashboardSummaryDto>(summary);
         }
     }
 }

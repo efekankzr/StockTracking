@@ -13,7 +13,6 @@ namespace StockTracking.Persistence.Configurations
 
             builder.HasIndex(s => new { s.ProductId, s.WarehouseId }).IsUnique();
 
-            // Ortalama Maliyet
             builder.Property(s => s.AverageCost)
                    .HasColumnType("decimal(18,4)")
                    .HasDefaultValue(0);

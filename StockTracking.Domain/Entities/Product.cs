@@ -2,7 +2,7 @@
 
 namespace StockTracking.Domain.Entities
 {
-    public class Product : BaseEntity
+    public class Product : BaseEntity, ISoftDelete
     {
         public Product()
         {
@@ -19,11 +19,11 @@ namespace StockTracking.Domain.Entities
         public decimal SalePrice { get; set; }
         public decimal TaxRateSelling { get; set; }
 
-        public bool IsDeleted { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; } = false;
 
         public Category Category { get; set; }
         public ICollection<Stock> Stocks { get; set; }
-
         public ICollection<SaleItem> SaleItems { get; set; }
         public ICollection<StockLog> StockLogs { get; set; }
     }

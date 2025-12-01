@@ -41,17 +41,13 @@ namespace StockTracking.WebAPI.Controllers
         public async Task<IActionResult> CreateEntry(CreateStockEntryDto request)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdString))
-                return Unauthorized(new ServiceResponse<bool>("Kimlik doğrulanamadı."));
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized(new ServiceResponse<bool>("Kimlik doğrulanamadı."));
 
             int userId = int.Parse(userIdString);
 
             var response = await _service.CreateStockEntryAsync(request, userId);
 
-            if (!response.Success)
-                return BadRequest(response);
-
+            if (!response.Success) return BadRequest(response);
             return Ok(response);
         }
     }

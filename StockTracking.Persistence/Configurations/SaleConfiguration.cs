@@ -12,11 +12,17 @@ namespace StockTracking.Persistence.Configurations
             builder.HasKey(s => s.Id);
 
             builder.Property(s => s.TotalAmount).HasColumnType("decimal(18,2)");
+            builder.Property(s => s.TotalVatAmount).HasColumnType("decimal(18,2)");
             builder.Property(s => s.TransactionNumber).HasMaxLength(50);
 
             builder.HasOne(s => s.User)
                    .WithMany(u => u.Sales)
                    .HasForeignKey(s => s.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(s => s.ActualSalesPerson)
+                   .WithMany()
+                   .HasForeignKey(s => s.ActualSalesPersonId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(s => s.Warehouse)
@@ -28,11 +34,6 @@ namespace StockTracking.Persistence.Configurations
                    .WithOne(i => i.Sale)
                    .HasForeignKey(i => i.SaleId)
                    .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasOne(s => s.ActualSalesPerson)
-                   .WithMany()
-                   .HasForeignKey(s => s.ActualSalesPersonId)
-                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

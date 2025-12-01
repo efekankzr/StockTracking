@@ -37,6 +37,7 @@ namespace StockTracking.WebAPI.Controllers
             if (string.IsNullOrEmpty(userIdString)) return Unauthorized(new ServiceResponse<bool>("Kimlik doğrulanamadı."));
 
             int userId = int.Parse(userIdString);
+
             var response = await _service.CreateSaleAsync(request, userId);
 
             if (!response.Success) return BadRequest(response);
@@ -49,6 +50,14 @@ namespace StockTracking.WebAPI.Controllers
         {
             var queryDate = date ?? DateTime.Now;
             var response = await _service.GetDailyReportAsync(queryDate);
+            return Ok(response);
+        }
+
+        [HttpGet("summary")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetSummary()
+        {
+            var response = await _service.GetDashboardSummaryAsync();
             return Ok(response);
         }
     }

@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using StockTracking.Domain.Entities;
+using StockTracking.Domain.Entities.Common;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace StockTracking.Persistence.Context
@@ -24,7 +26,21 @@ namespace StockTracking.Persistence.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
             base.OnModelCreating(modelBuilder);
+
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
+                {
+                    var parameter = Expression.Parameter(entityType.ClrType, "e");
+                    var property = Expression.Property(parameter, nameof(ISoftDelete.IsDeleted));
+                    var falseConstant = Expression.Constant(false);
+                    var lambda = Expression.Lambda(Expression.Equal(property, falseConstant), parameter);
+
+                    modelBuilder.Entity(entityType.ClrType).HasQueryFilter(lambda);
+                }
+            }
         }
     }
 }

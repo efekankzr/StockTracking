@@ -18,12 +18,13 @@ namespace StockTracking.Domain.Entities
 
         public int WarehouseId { get; set; }
         public PaymentMethod PaymentMethod { get; set; }
+
         public decimal TotalAmount { get; set; }
+        public decimal TotalVatAmount { get; set; }
 
         public User User { get; set; }
         public User? ActualSalesPerson { get; set; }
         public Warehouse Warehouse { get; set; }
-
         public ICollection<SaleItem> SaleItems { get; set; }
     }
 }

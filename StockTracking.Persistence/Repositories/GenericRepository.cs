@@ -55,11 +55,19 @@ namespace StockTracking.Persistence.Repositories
 
         public void Delete(T entity)
         {
-            if (_context.Entry(entity).State == EntityState.Detached)
+            if (entity is ISoftDelete softDeleteEntity)
             {
-                _dbSet.Attach(entity);
+                softDeleteEntity.IsDeleted = true;
+                Update(entity);
             }
-            _dbSet.Remove(entity);
+            else
+            {
+                if (_context.Entry(entity).State == EntityState.Detached)
+                {
+                    _dbSet.Attach(entity);
+                }
+                _dbSet.Remove(entity);
+            }
         }
 
         public async Task DeleteAsync(int id)

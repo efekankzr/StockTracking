@@ -10,6 +10,7 @@
 
         public decimal UnitPrice { get; set; }
         public decimal TotalAmount { get; set; }
+
         public decimal UnitCost { get; set; }
         public decimal Profit { get; set; }
     }

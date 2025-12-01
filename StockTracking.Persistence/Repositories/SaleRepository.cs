@@ -25,5 +25,17 @@ namespace StockTracking.Persistence.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<List<Sale>> GetLatestSalesAsync(int count)
+        {
+            return await _context.Sales
+                .Include(s => s.User)
+                .Include(s => s.Warehouse)
+                .Include(s => s.ActualSalesPerson)
+                .OrderByDescending(s => s.TransactionDate)
+                .Take(count)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

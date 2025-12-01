@@ -67,15 +67,17 @@ namespace StockTracking.Application.Mapping
                 .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod.ToString()))
                 .ForMember(dest => dest.TotalAmount, opt => opt.MapFrom(src => src.TotalAmount));
 
+            // --- SALE ITEM MAPPING ---
             CreateMap<SaleItem, SaleItemDto>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
                 .ForMember(dest => dest.Barcode, opt => opt.MapFrom(src => src.Product.Barcode))
-                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPriceWithVat));
+                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.UnitPrice))
+                .ForMember(dest => dest.LineTotal, opt => opt.MapFrom(src => src.Quantity * src.UnitPrice));
 
             CreateMap<CreateSaleDto, Sale>();
 
 
-            // --- TRANSFER MAPPING (YENİ EKLENDİ) ---
+            // --- TRANSFER MAPPING ---
             CreateMap<StockTransfer, TransferDto>()
                 .ForMember(dest => dest.SourceWarehouseName, opt => opt.MapFrom(src => src.SourceWarehouse.Name))
                 .ForMember(dest => dest.TargetWarehouseName, opt => opt.MapFrom(src => src.TargetWarehouse.Name))

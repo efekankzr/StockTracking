@@ -10,10 +10,10 @@ namespace StockTracking.Persistence.Configurations
         {
             builder.ToTable("SaleItems");
 
-            builder.Property(i => i.UnitPriceWithVat).HasColumnType("decimal(18,2)");
+            builder.Property(i => i.UnitCost).HasColumnType("decimal(18,4)");
+            builder.Property(i => i.UnitPrice).HasColumnType("decimal(18,2)");
             builder.Property(i => i.VatRate).HasColumnType("decimal(18,2)");
-            builder.Property(i => i.VatAmountTotal).HasColumnType("decimal(18,2)");
-            builder.Property(i => i.LineTotal).HasColumnType("decimal(18,2)");
+            builder.Property(i => i.VatAmount).HasColumnType("decimal(18,2)");
 
             builder.HasOne(i => i.Product)
                    .WithMany()

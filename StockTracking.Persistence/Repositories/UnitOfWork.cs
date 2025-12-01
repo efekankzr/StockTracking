@@ -28,8 +28,6 @@ namespace StockTracking.Persistence.Repositories
         public IStockLogRepository StockLogs => _stockLogs ??= new StockLogRepository(_context);
         public ISaleRepository Sales => _sales ??= new SaleRepository(_context);
         public IUserRepository Users => _users ??= new UserRepository(_context);
-
-        // YENİ
         public ITransferRepository StockTransfers => _stockTransfers ??= new TransferRepository(_context);
 
         public async Task<int> SaveChangesAsync()

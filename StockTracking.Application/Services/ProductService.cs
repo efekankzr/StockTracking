@@ -20,11 +20,7 @@ namespace StockTracking.Application.Services
 
         public async Task<ServiceResponse<List<ProductListDto>>> GetAllAsync()
         {
-            // ESKİSİ: var products = await _unitOfWork.Products.GetAllAsync();
-
-            // YENİSİ (Include'lu olanı çağırıyoruz):
             var products = await _unitOfWork.Products.GetAllWithDetailsAsync();
-
             return new ServiceResponse<List<ProductListDto>>(_mapper.Map<List<ProductListDto>>(products));
         }
 
@@ -39,7 +35,6 @@ namespace StockTracking.Application.Services
         {
             var product = _mapper.Map<Product>(request);
             await _unitOfWork.Products.AddAsync(product);
-
             await _unitOfWork.SaveChangesAsync();
 
             var warehouses = await _unitOfWork.Warehouses.GetAllAsync();
@@ -54,15 +49,17 @@ namespace StockTracking.Application.Services
                     {
                         ProductId = product.Id,
                         WarehouseId = warehouse.Id,
-                        Quantity = 0
+                        Quantity = 0,
+                        AverageCost = 0,
+                        LastPurchasePrice = 0
                     });
                 }
 
                 await _unitOfWork.Stocks.AddRangeAsync(newStocks);
-                await _unitOfWork.SaveChangesAsync(); // Stokları kaydet
+                await _unitOfWork.SaveChangesAsync();
             }
 
-            return new ServiceResponse<ProductDto>(_mapper.Map<ProductDto>(product), "Ürün ve depo stok kayıtları oluşturuldu.");
+            return new ServiceResponse<ProductDto>(_mapper.Map<ProductDto>(product), "Ürün eklendi.");
         }
 
         public async Task<ServiceResponse<bool>> UpdateAsync(UpdateProductDto request)

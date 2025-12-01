@@ -11,6 +11,7 @@
         public string PaymentMethod { get; set; }
 
         public decimal TotalAmount { get; set; }
+        public decimal TotalVatAmount { get; set; }
 
         public List<SaleItemDto> SaleItems { get; set; }
     }
