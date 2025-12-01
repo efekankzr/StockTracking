@@ -61,5 +61,23 @@ namespace StockTracking.WebAPI.Controllers
             if (!response.Success) return BadRequest(response);
             return Ok(response);
         }
+
+        [HttpPut("activate/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Activate(int id)
+        {
+            var response = await _service.ActivateAsync(id);
+            if (!response.Success) return BadRequest(response);
+            return Ok(response);
+        }
+
+        [HttpDelete("hard-delete/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> HardDelete(int id)
+        {
+            var response = await _service.HardDeleteAsync(id);
+            if (!response.Success) return BadRequest(response);
+            return Ok(response);
+        }
     }
 }

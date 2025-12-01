@@ -78,9 +78,25 @@ namespace StockTracking.Application.Services
             var product = await _unitOfWork.Products.GetByIdAsync(id);
             if (product == null) return new ServiceResponse<bool>("Ürün bulunamadı.");
 
-            _unitOfWork.Products.Delete(product);
-            await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Ürün silindi.");
+            var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == id && s.Quantity > 0);
+            if (hasStock != null)
+            {
+                return new ServiceResponse<bool>("Bu ürünün depolarında stoğu var. Silinemez.");
+            }
+
+            if (product.IsActive)
+            {
+                product.IsActive = false;
+                _unitOfWork.Products.Update(product);
+                await _unitOfWork.SaveChangesAsync();
+                return new ServiceResponse<bool>(true, "Ürün pasife alındı (Satışa kapatıldı).");
+            }
+            else
+            {
+                _unitOfWork.Products.Delete(product);
+                await _unitOfWork.SaveChangesAsync();
+                return new ServiceResponse<bool>(true, "Ürün tamamen silindi.");
+            }
         }
     }
 }

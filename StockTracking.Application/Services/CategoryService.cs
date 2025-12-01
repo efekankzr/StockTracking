@@ -55,8 +55,60 @@ namespace StockTracking.Application.Services
             var category = await _unitOfWork.Categories.GetByIdAsync(id);
             if (category == null) return new ServiceResponse<bool>("Kategori bulunamadı.");
 
+            var hasProducts = await _unitOfWork.Products.GetSingleAsync(p => p.CategoryId == id && !p.IsDeleted);
+
+            if (hasProducts != null)
+            {
+                return new ServiceResponse<bool>("Bu kategoriye bağlı aktif ürünler bulunmaktadır. Kategori silinemez veya pasife alınamaz.");
+            }
+
+            if (category.IsActive)
+            {
+                category.IsActive = false;
+                _unitOfWork.Categories.Update(category);
+                await _unitOfWork.SaveChangesAsync();
+
+                return new ServiceResponse<bool>(true, "Kategori pasife alındı (Arşivlendi).");
+            }
+            else
+            {
+                _unitOfWork.Categories.Delete(category);
+                await _unitOfWork.SaveChangesAsync();
+
+                return new ServiceResponse<bool>(true, "Kategori silindi (Geri dönüşüm kutusuna atıldı).");
+            }
+        }
+
+        public async Task<ServiceResponse<bool>> ActivateAsync(int id)
+        {
+            var category = await _unitOfWork.Categories.GetByIdAsync(id);
+            if (category == null) return new ServiceResponse<bool>("Kategori bulunamadı.");
+
+            if (!category.IsActive)
+            {
+                category.IsActive = true;
+                _unitOfWork.Categories.Update(category);
+                await _unitOfWork.SaveChangesAsync();
+                return new ServiceResponse<bool>(true, "Kategori tekrar aktif edildi.");
+            }
+
+            return new ServiceResponse<bool>("Kategori zaten aktif.");
+        }
+
+        public async Task<ServiceResponse<bool>> HardDeleteAsync(int id)
+        {
+            var category = await _unitOfWork.Categories.GetByIdAsync(id);
+            if (category == null) return new ServiceResponse<bool>("Kategori bulunamadı.");
+
+            var hasProducts = await _unitOfWork.Products.GetSingleAsync(p => p.CategoryId == id && !p.IsDeleted);
+            if (hasProducts != null)
+            {
+                return new ServiceResponse<bool>("Bağlı ürünler var, silinemez.");
+            }
+
             _unitOfWork.Categories.Delete(category);
             await _unitOfWork.SaveChangesAsync();
+
             return new ServiceResponse<bool>(true, "Kategori silindi.");
         }
     }

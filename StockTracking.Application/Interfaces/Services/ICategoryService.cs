@@ -10,5 +10,7 @@ namespace StockTracking.Application.Interfaces.Services
         Task<ServiceResponse<CategoryDto>> CreateAsync(CreateCategoryDto request);
         Task<ServiceResponse<bool>> UpdateAsync(UpdateCategoryDto request);
         Task<ServiceResponse<bool>> DeleteAsync(int id);
+        Task<ServiceResponse<bool>> ActivateAsync(int id);
+        Task<ServiceResponse<bool>> HardDeleteAsync(int id);
     }
 }

@@ -104,9 +104,26 @@ namespace StockTracking.Application.Services
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(id);
             if (warehouse == null) return new ServiceResponse<bool>("Depo bulunamadı.");
 
-            _unitOfWork.Warehouses.Delete(warehouse);
-            await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Depo silindi.");
+            var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.WarehouseId == id && s.Quantity > 0);
+
+            if (hasStock != null)
+            {
+                return new ServiceResponse<bool>($"Bu depoda hala ürün stoğu bulunmaktadır. Önce stokları transfer edin veya sıfırlayın.");
+            }
+
+            if (warehouse.IsActive)
+            {
+                warehouse.IsActive = false;
+                _unitOfWork.Warehouses.Update(warehouse);
+                await _unitOfWork.SaveChangesAsync();
+                return new ServiceResponse<bool>(true, "Depo pasife alındı (Arşivlendi).");
+            }
+            else
+            {
+                _unitOfWork.Warehouses.Delete(warehouse);
+                await _unitOfWork.SaveChangesAsync();
+                return new ServiceResponse<bool>(true, "Depo tamamen silindi (Çöp kutusuna atıldı).");
+            }
         }
 
         // --- HELPER METOTLAR ---
