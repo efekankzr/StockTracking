@@ -10,5 +10,7 @@ namespace StockTracking.Application.Interfaces.Services
         Task<ServiceResponse<ProductDto>> CreateAsync(CreateProductDto request);
         Task<ServiceResponse<bool>> UpdateAsync(UpdateProductDto request);
         Task<ServiceResponse<bool>> DeleteAsync(int id);
+        Task<ServiceResponse<bool>> ActivateAsync(int id);
+        Task<ServiceResponse<bool>> HardDeleteAsync(int id);
     }
 }

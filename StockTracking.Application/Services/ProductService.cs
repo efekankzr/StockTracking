@@ -38,27 +38,16 @@ namespace StockTracking.Application.Services
             await _unitOfWork.SaveChangesAsync();
 
             var warehouses = await _unitOfWork.Warehouses.GetAllAsync();
-
             if (warehouses.Count > 0)
             {
                 var newStocks = new List<Stock>();
-
                 foreach (var warehouse in warehouses)
                 {
-                    newStocks.Add(new Stock
-                    {
-                        ProductId = product.Id,
-                        WarehouseId = warehouse.Id,
-                        Quantity = 0,
-                        AverageCost = 0,
-                        LastPurchasePrice = 0
-                    });
+                    newStocks.Add(new Stock { ProductId = product.Id, WarehouseId = warehouse.Id, Quantity = 0 });
                 }
-
                 await _unitOfWork.Stocks.AddRangeAsync(newStocks);
                 await _unitOfWork.SaveChangesAsync();
             }
-
             return new ServiceResponse<ProductDto>(_mapper.Map<ProductDto>(product), "Ürün eklendi.");
         }
 
@@ -79,24 +68,34 @@ namespace StockTracking.Application.Services
             if (product == null) return new ServiceResponse<bool>("Ürün bulunamadı.");
 
             var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == id && s.Quantity > 0);
-            if (hasStock != null)
-            {
-                return new ServiceResponse<bool>("Bu ürünün depolarında stoğu var. Silinemez.");
-            }
+            if (hasStock != null) return new ServiceResponse<bool>("Bu ürünün stoğu var, silinemez.");
 
-            if (product.IsActive)
-            {
-                product.IsActive = false;
-                _unitOfWork.Products.Update(product);
-                await _unitOfWork.SaveChangesAsync();
-                return new ServiceResponse<bool>(true, "Ürün pasife alındı (Satışa kapatıldı).");
-            }
-            else
-            {
-                _unitOfWork.Products.Delete(product);
-                await _unitOfWork.SaveChangesAsync();
-                return new ServiceResponse<bool>(true, "Ürün tamamen silindi.");
-            }
+            await _unitOfWork.Products.ArchiveAsync(id);
+            await _unitOfWork.SaveChangesAsync();
+            return new ServiceResponse<bool>(true, "Ürün pasife alındı.");
+        }
+
+        public async Task<ServiceResponse<bool>> ActivateAsync(int id)
+        {
+            var product = await _unitOfWork.Products.GetByIdAsync(id);
+            if (product == null) return new ServiceResponse<bool>("Ürün bulunamadı.");
+
+            await _unitOfWork.Products.RestoreAsync(id);
+            await _unitOfWork.SaveChangesAsync();
+            return new ServiceResponse<bool>(true, "Ürün aktif edildi.");
+        }
+
+        public async Task<ServiceResponse<bool>> HardDeleteAsync(int id)
+        {
+            var product = await _unitOfWork.Products.GetByIdAsync(id);
+            if (product == null) return new ServiceResponse<bool>("Ürün bulunamadı.");
+
+            var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == id && s.Quantity > 0);
+            if (hasStock != null) return new ServiceResponse<bool>("Stok var, silinemez.");
+
+            _unitOfWork.Products.Delete(product);
+            await _unitOfWork.SaveChangesAsync();
+            return new ServiceResponse<bool>(true, "Ürün tamamen silindi.");
         }
     }
 }

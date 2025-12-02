@@ -11,5 +11,6 @@
 
         public decimal SalePrice { get; set; }
         public decimal TaxRateSelling { get; set; }
+        public bool IsActive { get; set; }
     }
 }

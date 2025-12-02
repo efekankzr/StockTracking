@@ -8,5 +8,6 @@
         public string CategoryName { get; set; }
         public decimal SalePrice { get; set; }
         public int TotalStockQuantity { get; set; }
+        public bool IsActive { get; set; }
     }
 }

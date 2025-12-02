@@ -107,7 +107,6 @@ namespace StockTracking.Application.Services
         {
             var allUsers = await _userManager.Users.ToListAsync();
             var dailySales = await ((ISaleRepository)_unitOfWork.Sales).GetSalesByDateAsync(date);
-            var allStocks = await _unitOfWork.Stocks.GetAllAsync();
 
             var reportList = new List<UserSalesReportDto>();
 
@@ -116,15 +115,10 @@ namespace StockTracking.Application.Services
                 var userSales = dailySales.Where(s => s.ActualSalesPersonId == user.Id).ToList();
                 var userRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Personel";
 
-                decimal totalCost = 0;
-
                 var salesDetails = userSales.SelectMany(s => s.SaleItems.Select(i =>
                 {
-                    var stockInfo = allStocks.FirstOrDefault(st => st.ProductId == i.ProductId && st.WarehouseId == s.WarehouseId);
-                    decimal currentCost = stockInfo?.AverageCost ?? 0;
-
-                    decimal profit = (i.UnitPrice - currentCost) * i.Quantity;
-                    totalCost += currentCost * i.Quantity;
+                    decimal unitCost = i.UnitCost;
+                    decimal profit = (i.UnitPrice - unitCost) * i.Quantity;
 
                     return new SaleDetailDto
                     {
@@ -132,22 +126,25 @@ namespace StockTracking.Application.Services
                         ProductName = i.Product.Name,
                         Barcode = i.Product.Barcode,
                         Quantity = i.Quantity,
+                        Time = s.TransactionDate,
+
                         UnitPrice = i.UnitPrice,
                         TotalAmount = i.Quantity * i.UnitPrice,
-                        Time = s.TransactionDate,
-                        UnitCost = currentCost,
+
+                        UnitCost = unitCost,
                         Profit = profit
                     };
-                })).OrderBy(x => x.Time).ToList();
+                })).OrderByDescending(x => x.Time).ToList();
 
                 var reportItem = new UserSalesReportDto
                 {
                     UserId = user.Id,
                     FullName = user.FullName,
                     Role = userRole,
+
                     TotalQuantity = salesDetails.Sum(x => x.Quantity),
-                    TotalAmount = userSales.Sum(s => s.TotalAmount),
-                    TotalCost = totalCost,
+                    TotalAmount = salesDetails.Sum(x => x.TotalAmount),
+                    TotalCost = salesDetails.Sum(x => x.UnitCost * x.Quantity),
                     TotalProfit = salesDetails.Sum(x => x.Profit),
                     ProfitMargin = 0,
                     Sales = salesDetails

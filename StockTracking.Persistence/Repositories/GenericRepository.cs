@@ -62,11 +62,7 @@ namespace StockTracking.Persistence.Repositories
             }
             else
             {
-                if (_context.Entry(entity).State == EntityState.Detached)
-                {
-                    _dbSet.Attach(entity);
-                }
-                _dbSet.Remove(entity);
+                HardDelete(entity);
             }
         }
 
@@ -75,6 +71,42 @@ namespace StockTracking.Persistence.Repositories
             var entity = await GetByIdAsync(id);
             if (entity != null)
                 Delete(entity);
+        }
+
+        public void HardDelete(T entity)
+        {
+            if (_context.Entry(entity).State == EntityState.Detached)
+            {
+                _dbSet.Attach(entity);
+            }
+            _dbSet.Remove(entity);
+        }
+
+        public async Task HardDeleteAsync(int id)
+        {
+            var entity = await GetByIdAsync(id);
+            if (entity != null)
+                HardDelete(entity);
+        }
+
+        public async Task ArchiveAsync(int id)
+        {
+            var entity = await GetByIdAsync(id);
+            if (entity != null && entity is ISoftDelete softDeleteEntity)
+            {
+                softDeleteEntity.IsActive = false;
+                Update(entity);
+            }
+        }
+
+        public async Task RestoreAsync(int id)
+        {
+            var entity = await GetByIdAsync(id);
+            if (entity != null && entity is ISoftDelete softDeleteEntity)
+            {
+                softDeleteEntity.IsActive = true;
+                Update(entity);
+            }
         }
 
         public async Task<int> SaveChangesAsync()

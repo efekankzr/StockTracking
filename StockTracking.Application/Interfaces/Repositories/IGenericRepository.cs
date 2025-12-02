@@ -14,6 +14,10 @@ namespace StockTracking.Application.Interfaces.Repositories
         void Update(T entity);
         void Delete(T entity);
         Task DeleteAsync(int id);
+        void HardDelete(T entity);
+        Task HardDeleteAsync(int id);
+        Task ArchiveAsync(int id);
+        Task RestoreAsync(int id);
         Task<int> SaveChangesAsync();
     }
 }

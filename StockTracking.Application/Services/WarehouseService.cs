@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using StockTracking.Application.DTOs.Warehouse;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
@@ -40,8 +41,7 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<WarehouseDto>> CreateAsync(CreateWarehouseDto request)
         {
             var existing = await _unitOfWork.Warehouses.GetSingleAsync(w => w.Name == request.Name);
-            if (existing != null)
-                return new ServiceResponse<WarehouseDto>("Bu isimde bir depo zaten mevcut.");
+            if (existing != null) return new ServiceResponse<WarehouseDto>("Bu isimde bir depo zaten mevcut.");
 
             var warehouse = _mapper.Map<Warehouse>(request);
             await _unitOfWork.Warehouses.AddAsync(warehouse);
@@ -62,37 +62,19 @@ namespace StockTracking.Application.Services
             string cleanName = CleanUsername(warehouse.Name);
             string password = "Password123!";
 
-            var managerUser = new User
-            {
-                FullName = $"{request.Name} Yöneticisi",
-                UserName = $"{cleanName}_yonetim",
-                Email = $"{cleanName}_manager@stock.com",
-                PhoneNumber = "5550000000",
-                WarehouseId = warehouse.Id,
-                IsActive = true
-            };
+            var managerUser = new User { FullName = $"{request.Name} Yöneticisi", UserName = $"{cleanName}_yonetim", Email = $"{cleanName}_manager@stock.com", PhoneNumber = "5550000000", WarehouseId = warehouse.Id, IsActive = true };
             await CreateUserWithRole(managerUser, password, "DepoSorumlusu");
 
-            var salesUser = new User
-            {
-                FullName = $"{request.Name} Kasa",
-                UserName = $"{cleanName}_kasa",
-                Email = $"{cleanName}_sales@stock.com",
-                PhoneNumber = "5550000000",
-                WarehouseId = warehouse.Id,
-                IsActive = true
-            };
+            var salesUser = new User { FullName = $"{request.Name} Kasa", UserName = $"{cleanName}_kasa", Email = $"{cleanName}_sales@stock.com", PhoneNumber = "5550000000", WarehouseId = warehouse.Id, IsActive = true };
             await CreateUserWithRole(salesUser, password, "SatisPersoneli");
 
-            return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse),
-                $"Depo açıldı. Kullanıcılar oluşturuldu: {managerUser.UserName} ve {salesUser.UserName} (Şifre: {password})");
+            return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse), $"Depo açıldı. Kullanıcılar oluşturuldu: {managerUser.UserName} ve {salesUser.UserName}");
         }
 
         public async Task<ServiceResponse<bool>> UpdateAsync(UpdateWarehouseDto request)
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(request.Id);
             if (warehouse == null) return new ServiceResponse<bool>("Depo bulunamadı.");
-
             _mapper.Map(request, warehouse);
             _unitOfWork.Warehouses.Update(warehouse);
             await _unitOfWork.SaveChangesAsync();
@@ -105,47 +87,51 @@ namespace StockTracking.Application.Services
             if (warehouse == null) return new ServiceResponse<bool>("Depo bulunamadı.");
 
             var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.WarehouseId == id && s.Quantity > 0);
+            if (hasStock != null) return new ServiceResponse<bool>("Bu depoda stok var. Silinemez.");
 
-            if (hasStock != null)
-            {
-                return new ServiceResponse<bool>($"Bu depoda hala ürün stoğu bulunmaktadır. Önce stokları transfer edin veya sıfırlayın.");
-            }
+            await _unitOfWork.Warehouses.ArchiveAsync(id);
+            await _unitOfWork.SaveChangesAsync();
 
-            if (warehouse.IsActive)
-            {
-                warehouse.IsActive = false;
-                _unitOfWork.Warehouses.Update(warehouse);
-                await _unitOfWork.SaveChangesAsync();
-                return new ServiceResponse<bool>(true, "Depo pasife alındı (Arşivlendi).");
-            }
-            else
-            {
-                _unitOfWork.Warehouses.Delete(warehouse);
-                await _unitOfWork.SaveChangesAsync();
-                return new ServiceResponse<bool>(true, "Depo tamamen silindi (Çöp kutusuna atıldı).");
-            }
+            return new ServiceResponse<bool>(true, "Depo pasife alındı (Arşivlendi).");
         }
 
-        // --- HELPER METOTLAR ---
+        public async Task<ServiceResponse<bool>> ActivateAsync(int id)
+        {
+            var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(id);
+            if (warehouse == null) return new ServiceResponse<bool>("Depo bulunamadı.");
+
+            await _unitOfWork.Warehouses.RestoreAsync(id);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new ServiceResponse<bool>(true, "Depo tekrar aktif edildi.");
+        }
+
+        public async Task<ServiceResponse<bool>> HardDeleteAsync(int id)
+        {
+            var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(id);
+            if (warehouse == null) return new ServiceResponse<bool>("Depo bulunamadı.");
+
+            var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.WarehouseId == id && s.Quantity > 0);
+            if (hasStock != null) return new ServiceResponse<bool>("Bu depoda stok var. Silinemez.");
+
+            _unitOfWork.Warehouses.Delete(warehouse);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new ServiceResponse<bool>(true, "Depo tamamen silindi.");
+        }
+
         private async Task CreateUserWithRole(User user, string password, string role)
         {
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
-                if (!await _roleManager.RoleExistsAsync(role))
-                    await _roleManager.CreateAsync(new IdentityRole<int>(role));
-
+                if (!await _roleManager.RoleExistsAsync(role)) await _roleManager.CreateAsync(new IdentityRole<int>(role));
                 await _userManager.AddToRoleAsync(user, role);
             }
         }
-
         private string CleanUsername(string text)
         {
-            string unaccented = text.ToLower()
-                .Replace('ı', 'i').Replace('ğ', 'g').Replace('ü', 'u')
-                .Replace('ş', 's').Replace('ö', 'o').Replace('ç', 'c')
-                .Replace(' ', '_');
-
+            string unaccented = text.ToLower().Replace('ı', 'i').Replace('ğ', 'g').Replace('ü', 'u').Replace('ş', 's').Replace('ö', 'o').Replace('ç', 'c').Replace(' ', '_');
             return Regex.Replace(unaccented, "[^a-z0-9_]", "");
         }
     }
