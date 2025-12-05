@@ -1,0 +1,44 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using StockTracking.Domain.Entities;
+
+namespace StockTracking.Persistence.Configurations
+{
+    public class ExpenseTransactionConfiguration : IEntityTypeConfiguration<ExpenseTransaction>
+    {
+        public void Configure(EntityTypeBuilder<ExpenseTransaction> builder)
+        {
+            builder.ToTable("ExpenseTransactions");
+            builder.HasKey(t => t.Id);
+
+            builder.Property(t => t.DocumentNumber).IsRequired().HasMaxLength(50);
+            builder.Property(t => t.Description).HasMaxLength(500);
+
+            // --- FİNANSAL HASSASİYET ---
+            builder.Property(t => t.BaseAmount).HasColumnType("decimal(18,4)");
+            builder.Property(t => t.VatAmount).HasColumnType("decimal(18,4)");
+            builder.Property(t => t.WithholdingAmount).HasColumnType("decimal(18,4)");
+            builder.Property(t => t.TotalAmount).HasColumnType("decimal(18,4)");
+
+            // --- İLİŞKİLER ---
+
+            // Kategori silinirse, geçmiş gider kayıtları silinmesin (Restrict)
+            builder.HasOne(t => t.ExpenseCategory)
+                   .WithMany(c => c.Transactions)
+                   .HasForeignKey(t => t.ExpenseCategoryId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            // Depo silinirse, o depoya ait giderler durmalı (Rapor için)
+            builder.HasOne(t => t.Warehouse)
+                   .WithMany() // Warehouse tarafında liste tutmuyoruz
+                   .HasForeignKey(t => t.WarehouseId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            // Personel silinirse, kaydı giren kişi null olmasın (Restrict)
+            builder.HasOne(t => t.User)
+                   .WithMany()
+                   .HasForeignKey(t => t.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+}

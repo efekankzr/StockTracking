@@ -25,6 +25,8 @@ namespace StockTracking.Persistence
             services.AddScoped<ISaleRepository, SaleRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITransferRepository, TransferRepository>();
+            services.AddScoped<IExpenseCategoryRepository, ExpenseCategoryRepository>();
+            services.AddScoped<IExpenseTransactionRepository, ExpenseTransactionRepository>();
         }
     }
 }

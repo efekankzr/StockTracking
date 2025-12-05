@@ -45,6 +45,29 @@ namespace StockTracking.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ExpenseCategories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    IsTaxDeductible = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    DefaultVatRate = table.Column<int>(type: "int", nullable: false, defaultValue: 20),
+                    HasWithholding = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    DefaultWithholdingRate = table.Column<int>(type: "int", nullable: false),
+                    IsSystemDefault = table.Column<bool>(type: "bit", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExpenseCategories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Warehouses",
                 columns: table => new
                 {
@@ -267,6 +290,51 @@ namespace StockTracking.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ExpenseTransactions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ExpenseCategoryId = table.Column<int>(type: "int", nullable: false),
+                    WarehouseId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    DocumentNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DocumentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    BaseAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    VatRate = table.Column<int>(type: "int", nullable: false),
+                    VatAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    WithholdingRate = table.Column<int>(type: "int", nullable: false),
+                    WithholdingAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    TotalAmount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    IsVatIncludedEntry = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExpenseTransactions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ExpenseTransactions_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ExpenseTransactions_ExpenseCategories_ExpenseCategoryId",
+                        column: x => x.ExpenseCategoryId,
+                        principalTable: "ExpenseCategories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ExpenseTransactions_Warehouses_WarehouseId",
+                        column: x => x.WarehouseId,
+                        principalTable: "Warehouses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Sales",
                 columns: table => new
                 {
@@ -483,6 +551,21 @@ namespace StockTracking.Persistence.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ExpenseTransactions_ExpenseCategoryId",
+                table: "ExpenseTransactions",
+                column: "ExpenseCategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExpenseTransactions_UserId",
+                table: "ExpenseTransactions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExpenseTransactions_WarehouseId",
+                table: "ExpenseTransactions",
+                column: "WarehouseId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Products_Barcode",
                 table: "Products",
                 column: "Barcode",
@@ -594,6 +677,9 @@ namespace StockTracking.Persistence.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "ExpenseTransactions");
+
+            migrationBuilder.DropTable(
                 name: "SaleItems");
 
             migrationBuilder.DropTable(
@@ -607,6 +693,9 @@ namespace StockTracking.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "ExpenseCategories");
 
             migrationBuilder.DropTable(
                 name: "Sales");
