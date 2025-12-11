@@ -49,7 +49,7 @@ export default function SalesPage() {
     const currentWarehouseId = user?.role === 'Admin' ? adminSelectedWarehouse : user?.warehouseId;
     const canSell = user?.role === 'SatisPersoneli' || user?.role === 'Admin';
 
-    const isSystemAccount = user?.username.endsWith('_kasa') || user?.username.endsWith('_yonetim');
+    const isSystemAccount = user?.username.endsWith('_satis') || user?.username.endsWith('_depo');
 
     const { data: products } = useQuery({ queryKey: ['products'], queryFn: productService.getAll });
     const { data: warehouses } = useQuery({ queryKey: ['warehouses'], queryFn: warehouseService.getAll });
@@ -60,10 +60,11 @@ export default function SalesPage() {
         if (!users?.data || !currentWarehouseId) return [];
         return users.data.filter(u =>
             u.warehouseId === currentWarehouseId &&
-            u.role === 'SatisPersoneli' &&
-            u.username !== user?.username
+            !u.username.endsWith('_satis') && // Sistem hesabını listede gösterme
+            !u.username.endsWith('_depo') &&  // Depo hesabını listede gösterme
+            (u.role === 'SatisPersoneli' || u.role === 'DepoSorumlusu' || u.role === 'Admin')
         );
-    }, [users, currentWarehouseId, user]);
+    }, [users, currentWarehouseId]);
 
     const createMutation = useMutation({
         mutationFn: saleService.create,
@@ -216,22 +217,64 @@ export default function SalesPage() {
                                 </div>
 
                                 {isSystemAccount ? (
-                                    <Select
-                                        value={selectedSalesPerson}
-                                        onValueChange={setSelectedSalesPerson}
-                                    >
-                                        <SelectTrigger className={`w-[200px] h-10 ${selectedSalesPerson === "0" ? "border-red-300 bg-red-50" : ""}`}>
-                                            <SelectValue placeholder="Satışı Yapan?" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="0" disabled>Personel Seçiniz...</SelectItem>
-                                            {warehouseStaff.map(u => (
-                                                <SelectItem key={u.id} value={u.id.toString()}>
-                                                    {u.fullName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    warehouseStaff.length === 0 ? (
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2 h-10 bg-red-50 px-3 rounded-lg border border-red-200">
+                                                <span className="text-xs text-red-600 font-bold whitespace-nowrap">
+                                                    ⚠ Personel Yok!
+                                                </span>
+                                            </div>
+
+                                            {/* DETAYLI DEBUG PANELİ */}
+                                            <details className="mt-2 p-3 border border-amber-200 bg-amber-50 rounded-lg text-[10px] text-amber-900 w-[300px] absolute top-12 left-0 z-50 shadow-xl">
+                                                <summary className="cursor-pointer font-bold mb-2 hover:underline">Neden Kimse Yok? (Tıkla)</summary>
+                                                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                                                    <p><strong>Şu Anki Depo ID:</strong> {currentWarehouseId}</p>
+                                                    <div className="border-t border-amber-200 pt-1">
+                                                        <strong>Tüm Kullanıcılar Analizi:</strong>
+                                                        <ul className="list-disc pl-3 mt-1 space-y-1">
+                                                            {users?.data?.map(u => {
+                                                                const isWarehouseMatch = u.warehouseId === currentWarehouseId;
+                                                                const isSystem = u.username.endsWith('_satis') || u.username.endsWith('_depo');
+                                                                const isRoleMatch = (u.role === 'SatisPersoneli' || u.role === 'DepoSorumlusu' || u.role === 'Admin');
+
+                                                                let reason = "";
+                                                                if (!isWarehouseMatch) reason = `Farklı Depo (ID: ${u.warehouseId})`;
+                                                                else if (isSystem) reason = "Sistem Hesabı (Gizli)";
+                                                                else if (!isRoleMatch) reason = `Uygunsuz Rol (${u.role})`;
+                                                                else reason = "✅ LİSTEDE OLMALI";
+
+                                                                return (
+                                                                    <li key={u.id} className={reason.includes("✅") ? "text-green-700 font-bold" : "text-red-700 opacity-70"}>
+                                                                        {u.username} ({u.fullName})
+                                                                        <br />
+                                                                        <span className="italic">&rarr; {reason}</span>
+                                                                    </li>
+                                                                );
+                                                            })}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </details>
+                                        </div>
+                                    ) : (
+                                        <Select
+                                            value={selectedSalesPerson}
+                                            onValueChange={setSelectedSalesPerson}
+                                        >
+                                            <SelectTrigger className={`w-[200px] h-10 ${selectedSalesPerson === "0" ? "border-red-300 bg-red-50" : ""}`}>
+                                                <SelectValue placeholder="Personel Seçin" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="0" disabled>Personel Seçiniz...</SelectItem>
+                                                {warehouseStaff.map(u => (
+                                                    <SelectItem key={u.id} value={u.id.toString()}>
+                                                        {u.fullName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )
                                 ) : (
                                     <div className="flex items-center px-4 bg-green-50 border-green-200 rounded-lg text-sm font-medium text-green-700 border h-10">
                                         <UserCircle className="w-4 h-4 mr-2" />

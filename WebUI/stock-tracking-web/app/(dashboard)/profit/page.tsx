@@ -30,8 +30,8 @@ export default function ProfitPage() {
         if (!data?.data) return [];
         return data.data.filter(user => {
             if (user.role === 'Admin') return false;
-            if (user.fullName.endsWith(' Kasa')) return false;
-            if (user.fullName.endsWith(' Yöneticisi')) return false;
+            if (user.fullName.endsWith(' Depo')) return false;
+            if (user.fullName.endsWith(' Satış')) return false;
             if (user.fullName === 'System Administrator') return false;
             return true;
         });

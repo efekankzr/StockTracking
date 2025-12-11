@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import { CreateUserRequest, ServiceResponse, UserDto } from '@/types';
+import { CreateUserRequest, UpdateUserRequest, UserDto, ServiceResponse } from '@/types';
 
 const userService = {
   getAll: async () => {
@@ -9,6 +9,11 @@ const userService = {
 
   create: async (data: CreateUserRequest) => {
     const response = await api.post<ServiceResponse<boolean>>('/user/create', data);
+    return response.data;
+  },
+
+  update: async (data: UpdateUserRequest) => { // Added update method
+    const response = await api.put<ServiceResponse<boolean>>('/user', data); // Assuming /user is the endpoint for update
     return response.data;
   },
 };

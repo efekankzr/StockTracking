@@ -67,5 +67,37 @@ namespace StockTracking.Application.Services
 
             return new ServiceResponse<bool>(true, "Personel oluşturuldu.");
         }
+
+        public async Task<ServiceResponse<bool>> UpdateUserAsync(UpdateUserDto request)
+        {
+            var user = await _userManager.FindByIdAsync(request.Id);
+            if (user == null) return new ServiceResponse<bool>("Kullanıcı bulunamadı.");
+
+            user.FullName = request.FullName;
+            user.Email = request.Email;
+            user.PhoneNumber = request.PhoneNumber;
+            user.WarehouseId = request.WarehouseId;
+
+            // Eğer e-posta değiştiyse username'i de güncellemek gerekebilir ancak şimdilik sabit bırakıyoruz veya ayrı ele alıyoruz.
+            // Bu örnekte UserName değiştirilmiyor. 
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                return new ServiceResponse<bool>(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            // Rol Güncelleme
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            if (!currentRoles.Contains(request.Role))
+            {
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                
+                if (!await _roleManager.RoleExistsAsync(request.Role))
+                    await _roleManager.CreateAsync(new IdentityRole<int>(request.Role));
+
+                await _userManager.AddToRoleAsync(user, request.Role);
+            }
+
+            return new ServiceResponse<bool>(true, "Personel güncellendi.");
+        }
     }
 }

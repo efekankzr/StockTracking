@@ -4,14 +4,15 @@ import { useAuth } from '@/context/auth-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import saleService from '@/services/saleService';
 import stockService from '@/services/stockService';
-import userService from '@/services/userService'; // Added
-import warehouseService from '@/services/warehouseService'; // Added
+import userService from '@/services/userService';
+import warehouseService from '@/services/warehouseService';
+import transferService from '@/services/transferService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
     TrendingUp, Package, Users, ShoppingCart,
     ArrowRightLeft, ShieldCheck, Store, CalendarDays, Banknote,
-    PlusCircle
+    PlusCircle, Truck, Search, History
 } from 'lucide-react';
 import Link from 'next/link';
 import { DashboardSummaryDto } from '@/types';
@@ -19,8 +20,8 @@ import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { StockEntryForm } from '@/components/forms/stock-entry-form';
-import { UserForm } from '@/components/forms/user-form'; // Added
-import { WarehouseForm } from '@/components/forms/warehouse-form'; // Added
+import { UserForm } from '@/components/forms/user-form';
+import { WarehouseForm } from '@/components/forms/warehouse-form';
 import { toast } from 'sonner';
 
 // Reusable logic for stock entry
@@ -47,7 +48,7 @@ const useStockEntry = () => {
     return { isOpen, setIsOpen, createEntryMutation, onSubmit };
 };
 
-// --- ANDROID DASHBOARD LOGIC --- 
+// --- ADMIN DASHBOARD LOGIC --- 
 const useAdminActions = () => {
     const queryClient = useQueryClient();
     const [isUserOpen, setIsUserOpen] = useState(false);
@@ -57,7 +58,7 @@ const useAdminActions = () => {
         mutationFn: userService.create,
         onSuccess: () => {
             toast.success('Personel başarıyla eklendi.');
-            queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] }); // To update employees count
+            queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
             setIsUserOpen(false);
         },
         onError: (err: any) => toast.error(err?.response?.data?.message || 'Personel eklenirken hata oluştu.'),
@@ -112,10 +113,8 @@ const AdminDashboard = () => {
         queryFn: saleService.getDashboardSummary,
     });
 
-    // Stock Entry Logic
     const { isOpen, setIsOpen, createEntryMutation, onSubmit } = useStockEntry();
 
-    // Admin Other Actions
     const {
         isUserOpen, setIsUserOpen, createUserMutation,
         isWarehouseOpen, setIsWarehouseOpen, createWarehouseMutation,
@@ -134,78 +133,59 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div className="h-full flex flex-col p-6 space-y-6 animate-in fade-in duration-500 min-h-0">
-            {/* ÜST BAŞLIK ALANI (Sabit) */}
+        <div className="h-full flex flex-col p-6 space-y-6 animate-in fade-in duration-500 min-h-0 bg-slate-50/50">
             <div className="flex items-center justify-between shrink-0">
                 <div>
                     <h2 className="text-3xl font-bold text-slate-800">Yönetim Paneli</h2>
-                    <p className="text-slate-500 text-sm">Finansal durum ve operasyon özeti</p>
+                    <p className="text-slate-500 text-sm">Genel durum ve yönetim kısayolları</p>
                 </div>
                 <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold border border-red-200">
                     Admin
                 </span>
             </div>
 
-            {/* SCROLL EDİLEBİLİR İÇERİK ALANI */}
             <div className="flex-1 overflow-auto min-h-0 space-y-6 pr-2">
-
-                {/* ÖZET KARTLAR */}
+                {/* İSTATİSTİK KARTLARI */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-                    {/* 1. GÜNLÜK CİRO */}
                     <Card className="border-l-4 border-l-blue-500 shadow-sm bg-white">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Günlük Ciro</p>
-                                    <h3 className="text-2xl font-extrabold text-blue-700 mt-1">
-                                        {stats.dailyRevenue.toLocaleString()} ₺
-                                    </h3>
+                                    <h3 className="text-2xl font-extrabold text-blue-700 mt-1">{stats.dailyRevenue.toLocaleString()} ₺</h3>
                                 </div>
                                 <div className="p-3 bg-blue-50 rounded-full text-blue-600"><Banknote /></div>
                             </div>
                         </CardContent>
                     </Card>
-
-                    {/* 2. AYLIK CİRO */}
                     <Card className="border-l-4 border-l-purple-500 shadow-sm bg-white">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Aylık Ciro</p>
-                                    <h3 className="text-2xl font-extrabold text-purple-700 mt-1">
-                                        {stats.monthlyRevenue.toLocaleString()} ₺
-                                    </h3>
+                                    <h3 className="text-2xl font-extrabold text-purple-700 mt-1">{stats.monthlyRevenue.toLocaleString()} ₺</h3>
                                 </div>
                                 <div className="p-3 bg-purple-50 rounded-full text-purple-600"><CalendarDays /></div>
                             </div>
                         </CardContent>
                     </Card>
-
-                    {/* 3. GENEL TOPLAM CİRO */}
                     <Card className="border-l-4 border-l-green-500 shadow-sm bg-white">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Genel Ciro</p>
-                                    <h3 className="text-2xl font-extrabold text-green-700 mt-1">
-                                        {stats.totalRevenue.toLocaleString()} ₺
-                                    </h3>
+                                    <h3 className="text-2xl font-extrabold text-green-700 mt-1">{stats.totalRevenue.toLocaleString()} ₺</h3>
                                 </div>
                                 <div className="p-3 bg-green-50 rounded-full text-green-600"><TrendingUp /></div>
                             </div>
                         </CardContent>
                     </Card>
-
-                    {/* 4. TOPLAM STOK */}
                     <Card className="border-l-4 border-l-orange-500 shadow-sm bg-white">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Toplam Stok</p>
-                                    <h3 className="text-2xl font-extrabold text-slate-900 mt-1">
-                                        {stats.totalStockQuantity} <span className="text-sm font-normal text-slate-400">Adet</span>
-                                    </h3>
+                                    <h3 className="text-2xl font-extrabold text-slate-900 mt-1">{stats.totalStockQuantity} <span className="text-sm font-normal text-slate-400">Adet</span></h3>
                                 </div>
                                 <div className="p-3 bg-orange-50 rounded-full text-orange-600"><Package /></div>
                             </div>
@@ -214,14 +194,9 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
-
-                    {/* SOL: SON İŞLEMLER TABLOSU */}
+                    {/* SON İŞLEMLER */}
                     <Card className="col-span-2 shadow-sm border-0 lg:border">
-                        <CardHeader className="border-b bg-slate-50/50 py-4">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <ShoppingCart className="w-5 h-5 text-blue-600" /> Son Satış İşlemleri
-                            </CardTitle>
-                        </CardHeader>
+                        <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-blue-600" /> Son Satış İşlemleri</CardTitle></CardHeader>
                         <CardContent className="p-0 overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm text-left">
@@ -229,26 +204,20 @@ const AdminDashboard = () => {
                                         <tr>
                                             <th className="px-6 py-3">Fiş No</th>
                                             <th className="px-6 py-3">Tarih</th>
-                                            <th className="px-6 py-3">Personel</th>
                                             <th className="px-6 py-3">Depo</th>
                                             <th className="px-6 py-3 text-right">Tutar</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {stats.latestSales.length === 0 ? (
-                                            <tr><td colSpan={5} className="text-center py-8 text-slate-400">Henüz işlem yok.</td></tr>
+                                            <tr><td colSpan={4} className="text-center py-8 text-slate-400">Kayıt yok.</td></tr>
                                         ) : (
                                             stats.latestSales.map((sale) => (
-                                                <tr key={sale.id} className="bg-white border-b hover:bg-slate-50 transition-colors">
+                                                <tr key={sale.id} className="bg-white border-b hover:bg-slate-50">
                                                     <td className="px-6 py-4 font-mono text-xs text-slate-500">{sale.transactionNumber}</td>
-                                                    <td className="px-6 py-4 text-slate-700">
-                                                        {new Date(sale.date).toLocaleDateString('tr-TR')} <span className="text-xs text-gray-400">{new Date(sale.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                                    </td>
-                                                    <td className="px-6 py-4 font-medium text-slate-900">{sale.salesPerson}</td>
+                                                    <td className="px-6 py-4">{new Date(sale.date).toLocaleDateString('tr-TR')}</td>
                                                     <td className="px-6 py-4 text-slate-600">{sale.warehouse}</td>
-                                                    <td className="px-6 py-4 text-right font-bold text-green-600">
-                                                        +{sale.amount.toLocaleString()} ₺
-                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-bold text-green-600">+{sale.amount.toLocaleString()} ₺</td>
                                                 </tr>
                                             ))
                                         )}
@@ -258,38 +227,21 @@ const AdminDashboard = () => {
                         </CardContent>
                     </Card>
 
-                    {/* SAĞ: HIZLI ERİŞİM */}
+                    {/* HIZLI MENÜ */}
                     <Card className="shadow-sm border-0 lg:border h-fit">
-                        <CardHeader className="border-b bg-slate-50/50 py-4">
-                            <CardTitle className="text-lg">Hızlı Menü</CardTitle>
-                        </CardHeader>
+                        <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg">Hızlı Menü</CardTitle></CardHeader>
                         <CardContent className="p-4 grid grid-cols-1 gap-3">
-                            <Button
-                                variant="outline"
-                                onClick={() => setIsOpen(true)}
-                                className="w-full justify-start h-12 border-slate-200 hover:border-violet-300 hover:bg-violet-50 text-slate-600 hover:text-violet-700"
-                            >
+                            <Button variant="outline" onClick={() => setIsOpen(true)} className="w-full justify-start h-12 border-slate-200 hover:bg-violet-50 text-slate-600 hover:text-violet-700">
                                 <PlusCircle className="mr-3 w-5 h-5 text-violet-500" /> Hızlı Stok Ekle
                             </Button>
-
-                            <Button
-                                variant="outline"
-                                onClick={() => setIsUserOpen(true)}
-                                className="w-full justify-start h-12 border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-700"
-                            >
+                            <Button variant="outline" onClick={() => setIsUserOpen(true)} className="w-full justify-start h-12 border-slate-200 hover:bg-blue-50 text-slate-600 hover:text-blue-700">
                                 <Users className="mr-3 w-5 h-5 text-blue-500" /> Yeni Personel Ekle
                             </Button>
-
-                            <Button
-                                variant="outline"
-                                onClick={() => setIsWarehouseOpen(true)}
-                                className="w-full justify-start h-12 border-slate-200 hover:border-orange-300 hover:bg-orange-50 text-slate-600 hover:text-orange-700"
-                            >
+                            <Button variant="outline" onClick={() => setIsWarehouseOpen(true)} className="w-full justify-start h-12 border-slate-200 hover:bg-orange-50 text-slate-600 hover:text-orange-700">
                                 <Store className="mr-3 w-5 h-5 text-orange-500" /> Depo / Şube Aç
                             </Button>
-
                             <Link href="/profit">
-                                <Button variant="outline" className="w-full justify-start h-12 border-slate-200 hover:border-green-300 hover:bg-green-50 text-slate-600 hover:text-green-700">
+                                <Button variant="outline" className="w-full justify-start h-12 border-slate-200 hover:bg-green-50 text-slate-600 hover:text-green-700">
                                     <TrendingUp className="mr-3 w-5 h-5 text-green-500" /> Karlılık Raporu
                                 </Button>
                             </Link>
@@ -298,46 +250,14 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            {/* MODALLAR */}
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Stok Giriş / Çıkış</DialogTitle>
-                        <DialogDescription>Mal kabul veya zayi işlemlerini buradan yapabilirsiniz.</DialogDescription>
-                    </DialogHeader>
-                    <StockEntryForm
-                        onSubmit={onSubmit}
-                        isLoading={createEntryMutation.isPending}
-                    />
-                </DialogContent>
+                <DialogContent><DialogHeader><DialogTitle>Stok Giriş / Çıkış</DialogTitle></DialogHeader><StockEntryForm onSubmit={onSubmit} isLoading={createEntryMutation.isPending} /></DialogContent>
             </Dialog>
-
             <Dialog open={isUserOpen} onOpenChange={setIsUserOpen}>
-                <DialogContent className="sm:max-w-lg">
-                    <DialogHeader>
-                        <DialogTitle>Yeni Personel Ekle</DialogTitle>
-                        <DialogDescription>Sisteme giriş yapacak yeni bir kullanıcı tanımlayın.</DialogDescription>
-                    </DialogHeader>
-                    <UserForm
-                        onSubmit={onUserSubmit}
-                        isLoading={createUserMutation.isPending}
-                    />
-                </DialogContent>
+                <DialogContent><DialogHeader><DialogTitle>Yeni Personel</DialogTitle></DialogHeader><UserForm onSubmit={onUserSubmit} isLoading={createUserMutation.isPending} /></DialogContent>
             </Dialog>
-
             <Dialog open={isWarehouseOpen} onOpenChange={setIsWarehouseOpen}>
-                <DialogContent className="sm:max-w-6xl h-[90vh] flex flex-col p-0 gap-0">
-                    <DialogHeader className="p-6 pb-2">
-                        <DialogTitle>Yeni Depo / Şube Aç</DialogTitle>
-                        <DialogDescription>Yeni bir depo veya mağaza tanımlayın.</DialogDescription>
-                    </DialogHeader>
-                    <div className="flex-1 min-h-0">
-                        <WarehouseForm
-                            onSubmit={(data) => createWarehouseMutation.mutate(data)}
-                            isLoading={createWarehouseMutation.isPending}
-                        />
-                    </div>
-                </DialogContent>
+                <DialogContent className="sm:max-w-4xl"><DialogHeader><DialogTitle>Yeni Depo</DialogTitle></DialogHeader><WarehouseForm onSubmit={(data) => createWarehouseMutation.mutate(data)} isLoading={createWarehouseMutation.isPending} /></DialogContent>
             </Dialog>
         </div>
     );
@@ -345,140 +265,246 @@ const AdminDashboard = () => {
 
 // --- 2. WAREHOUSE DASHBOARD ---
 const WarehouseDashboard = () => {
-    // Stock Entry Logic
+    const { user } = useAuth();
     const { isOpen, setIsOpen, createEntryMutation, onSubmit } = useStockEntry();
 
+    // Fetch Data
+    const { data: transfers } = useQuery({ queryKey: ['transfers'], queryFn: transferService.getAll });
+    const { data: stocks } = useQuery({ queryKey: ['stocks'], queryFn: stockService.getAll });
+
+    // Stats Calculation
+    const myWarehouseId = user?.warehouseId;
+    const pendingIncoming = transfers?.data?.filter(t => t.targetWarehouseId === myWarehouseId && t.status === 'Pending') || [];
+    const pendingOutgoing = transfers?.data?.filter(t => t.sourceWarehouseId === myWarehouseId && t.status === 'Pending') || [];
+    const myStocks = stocks?.data?.filter(s => s.warehouseId === myWarehouseId) || [];
+    const lowStockItems = myStocks.filter(s => s.quantity < 10); // Example threshold
+
     return (
-        <div className="h-full flex flex-col p-6 space-y-6 animate-in fade-in duration-500 min-h-0">
+        <div className="h-full flex flex-col p-6 space-y-6 animate-in fade-in duration-500 min-h-0 bg-slate-50/50">
             <div className="flex items-center justify-between shrink-0">
-                <h2 className="text-3xl font-bold text-slate-800">Depo Operasyonları</h2>
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold border border-blue-200">
-                    Depo Sorumlusu
-                </span>
+                <div>
+                    <h2 className="text-3xl font-bold text-slate-800">Depo Paneli</h2>
+                    <p className="text-slate-500 text-sm">Transfer ve stok yönetimi</p>
+                </div>
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold border border-blue-200">Depo Sorumlusu</span>
             </div>
 
-            <div className="flex-1 overflow-auto min-h-0 pr-2">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Link href="/stocks">
-                        <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-blue-500 h-full group">
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-lg font-medium text-slate-700 group-hover:text-blue-600">Stok Durumu</CardTitle>
-                                <Package className="h-5 w-5 text-blue-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-slate-500 mb-4">Depodaki ürünlerin anlık miktarlarını görüntüleyin.</p>
-                                <Button variant="secondary" className="w-full text-blue-600 bg-blue-50 hover:bg-blue-100">Listeyi Gör</Button>
-                            </CardContent>
-                        </Card>
-                    </Link>
+            <div className="flex-1 overflow-auto min-h-0 space-y-6 pr-2">
+                {/* İSTATİSTİK KARTLARI */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="border-l-4 border-l-orange-500 shadow-sm bg-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Bekleyen Giriş</p>
+                                    <h3 className="text-2xl font-extrabold text-orange-600 mt-1">{pendingIncoming.length} <span className="text-sm text-slate-400 font-normal">Transfer</span></h3>
+                                </div>
+                                <Truck className="w-8 h-8 text-orange-200" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="border-l-4 border-l-blue-500 shadow-sm bg-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Toplam Stok Çeşidi</p>
+                                    <h3 className="text-2xl font-extrabold text-blue-600 mt-1">{myStocks.length} <span className="text-sm text-slate-400 font-normal">Ürün</span></h3>
+                                </div>
+                                <Package className="w-8 h-8 text-blue-200" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card className="border-l-4 border-l-red-500 shadow-sm bg-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kritik Stok</p>
+                                    <h3 className="text-2xl font-extrabold text-red-600 mt-1">{lowStockItems.length} <span className="text-sm text-slate-400 font-normal">Ürün</span></h3>
+                                </div>
+                                <ShieldCheck className="w-8 h-8 text-red-200" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
-                    <Link href="/transfers">
-                        <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-orange-500 h-full group">
-                            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-lg font-medium text-slate-700 group-hover:text-orange-600">Transferler</CardTitle>
-                                <ArrowRightLeft className="h-5 w-5 text-orange-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-slate-500 mb-4">Gelen ve giden transferleri yönetin ve onaylayın.</p>
-                                <Button variant="secondary" className="w-full text-orange-600 bg-orange-50 hover:bg-orange-100">İşlemleri Yönet</Button>
-                            </CardContent>
-                        </Card>
-                    </Link>
-
-                    <Card className="hover:shadow-md transition-all cursor-pointer border-l-4 border-l-green-500 bg-green-50/30 h-full">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-lg font-medium text-slate-700">Mal Kabul</CardTitle>
-                            <PlusIcon />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-slate-600 mb-4">Yeni gelen ürünleri depoya hızlıca ekleyin.</p>
-                            {/* Changed Link to Button trigger */}
-                            <Button
-                                onClick={() => setIsOpen(true)}
-                                className="w-full bg-green-600 hover:bg-green-700 text-white shadow-sm"
-                            >
-                                Yeni Giriş Yap
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* HIZLI MENÜ */}
+                    <Card className="col-span-1 shadow-sm border-0 lg:border">
+                        <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg">Hızlı İşlemler</CardTitle></CardHeader>
+                        <CardContent className="p-4 grid grid-cols-1 gap-3">
+                            <Button variant="outline" onClick={() => setIsOpen(true)} className="w-full justify-start h-12 border-slate-200 hover:bg-green-50 text-slate-600 hover:text-green-700">
+                                <PlusCircle className="mr-3 w-5 h-5 text-green-500" /> Mal Kabul / Giriş
                             </Button>
+                            <Link href="/transfers">
+                                <Button variant="outline" className="w-full justify-start h-12 border-slate-200 hover:bg-orange-50 text-slate-600 hover:text-orange-700">
+                                    <ArrowRightLeft className="mr-3 w-5 h-5 text-orange-500" /> Transfer Yönetimi
+                                </Button>
+                            </Link>
+                            <Link href="/stocks">
+                                <Button variant="outline" className="w-full justify-start h-12 border-slate-200 hover:bg-blue-50 text-slate-600 hover:text-blue-700">
+                                    <Search className="mr-3 w-5 h-5 text-blue-500" /> Stok Sorgula
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+
+                    {/* BEKLEYEN TRANSFERLER */}
+                    <Card className="col-span-2 shadow-sm border-0 lg:border">
+                        <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg flex items-center gap-2"><Truck className="w-5 h-5 text-slate-500" /> Bekleyen Girişler</CardTitle></CardHeader>
+                        <CardContent className="p-0">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b">
+                                        <tr>
+                                            <th className="px-6 py-3">Fiş No</th>
+                                            <th className="px-6 py-3">Kaynak</th>
+                                            <th className="px-6 py-3">Ürün</th>
+                                            <th className="px-6 py-3 text-right">Adet</th>
+                                            <th className="px-6 py-3 text-center">Durum</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {pendingIncoming.length === 0 ? (
+                                            <tr><td colSpan={5} className="text-center py-8 text-slate-400">Bekleyen transfer yok.</td></tr>
+                                        ) : (
+                                            pendingIncoming.slice(0, 5).map((tr) => (
+                                                <tr key={tr.id} className="bg-white border-b hover:bg-slate-50">
+                                                    <td className="px-6 py-4 font-mono text-xs text-slate-500">{tr.transferNumber}</td>
+                                                    <td className="px-6 py-4">{tr.sourceWarehouseName}</td>
+                                                    <td className="px-6 py-4 font-medium">{tr.productName}</td>
+                                                    <td className="px-6 py-4 text-right font-bold">{tr.quantity}</td>
+                                                    <td className="px-6 py-4 text-center"><span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">Yolda</span></td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
             </div>
 
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Stok Giriş / Çıkış</DialogTitle>
-                        <DialogDescription>Mal kabul veya zayi işlemlerini buradan yapabilirsiniz.</DialogDescription>
-                    </DialogHeader>
-                    <StockEntryForm
-                        onSubmit={onSubmit}
-                        isLoading={createEntryMutation.isPending}
-                    />
-                </DialogContent>
+                <DialogContent><DialogHeader><DialogTitle>Stok Giriş / Çıkış</DialogTitle></DialogHeader><StockEntryForm onSubmit={onSubmit} isLoading={createEntryMutation.isPending} /></DialogContent>
             </Dialog>
         </div>
     );
 };
 
-// --- 3. SALES DASHBOARD  ---
+// --- 3. SALES DASHBOARD ---
 const SalesDashboard = () => {
+    const { user } = useAuth();
+    const { data: dailyReport } = useQuery({
+        queryKey: ['dailyReport', new Date().toISOString().split('T')[0]],
+        queryFn: () => saleService.getDailyReport(new Date())
+    });
+
+    const myStats = dailyReport?.data.find(u => u.userId === user?.id);
+    const myRecentSales = myStats?.sales?.slice(0, 5) || [];
+
     return (
-        <div className="h-full flex flex-col justify-center items-center bg-slate-50/50 rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative">
-
-            <div className="text-center space-y-4 mb-10 max-w-2xl px-6 z-10">
-                <div className="inline-flex items-center justify-center p-4 bg-blue-100 text-blue-600 rounded-full mb-2 ring-8 ring-blue-50 shadow-sm">
-                    <ShoppingCart size={36} />
+        <div className="h-full flex flex-col p-6 space-y-6 animate-in fade-in duration-500 min-h-0 bg-slate-50/50">
+            <div className="flex items-center justify-between shrink-0">
+                <div>
+                    <h2 className="text-3xl font-bold text-slate-800">Satış Paneli</h2>
+                    <p className="text-slate-500 text-sm">Hayırlı işler, {user?.fullName}</p>
                 </div>
-                <h1 className="text-3xl md:text-5xl font-black text-slate-800 tracking-tight">
-                    Hoş Geldiniz 👋
-                </h1>
-                <p className="text-slate-500 text-base md:text-lg font-medium">
-                    İşlemlerinizi gerçekleştirmek için aşağıdan seçim yapın.
-                </p>
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold border border-green-200">Satış Personeli</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl px-6 z-10">
-
-                <Link href="/sales" className="group block">
-                    <div className="relative overflow-hidden bg-white border-2 border-blue-100 hover:border-blue-500 rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group-active:scale-95 h-full flex flex-col justify-center items-center">
-
-                        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-32 h-32 bg-blue-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
-
-                        <div className="relative z-10 flex flex-col items-center gap-3">
-                            <div className="p-3 bg-blue-600 text-white rounded-xl shadow-md group-hover:scale-110 transition-transform duration-300">
-                                <ShoppingCart size={28} strokeWidth={2.5} />
+            <div className="flex-1 overflow-auto min-h-0 space-y-6 pr-2">
+                {/* İSTATİSTİK KARTLARI */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Card className="border-l-4 border-l-indigo-500 shadow-sm bg-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Bugünkü Cirom</p>
+                                    <h3 className="text-2xl font-extrabold text-indigo-700 mt-1">{myStats?.totalAmount.toLocaleString() || 0} ₺</h3>
+                                </div>
+                                <Banknote className="w-8 h-8 text-indigo-200" />
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-800 group-hover:text-blue-700 transition-colors">Satış Ekranı</h3>
-                                <p className="text-slate-500 text-xs group-hover:text-slate-600">Hızlı satış yap</p>
+                        </CardContent>
+                    </Card>
+                    <Card className="border-l-4 border-l-emerald-500 shadow-sm bg-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Satılan Ürün</p>
+                                    <h3 className="text-2xl font-extrabold text-emerald-600 mt-1">{myStats?.totalQuantity || 0} <span className="text-sm text-slate-400 font-normal">Adet</span></h3>
+                                </div>
+                                <Package className="w-8 h-8 text-emerald-200" />
                             </div>
-                        </div>
-                    </div>
-                </Link>
-
-                <Link href="/stocks" className="group block">
-                    <div className="relative overflow-hidden bg-white border-2 border-orange-100 hover:border-orange-500 rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group-active:scale-95 h-full flex flex-col justify-center items-center">
-
-                        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-32 h-32 bg-orange-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-500"></div>
-
-                        <div className="relative z-10 flex flex-col items-center gap-3">
-                            <div className="p-3 bg-orange-500 text-white rounded-xl shadow-md group-hover:scale-110 transition-transform duration-300">
-                                <Package size={28} strokeWidth={2.5} />
+                        </CardContent>
+                    </Card>
+                    <Card className="border-l-4 border-l-pink-500 shadow-sm bg-white">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Fiş Sayısı</p>
+                                    <h3 className="text-2xl font-extrabold text-pink-600 mt-1">{new Set(myStats?.sales.map(s => s.saleId)).size || 0} <span className="text-sm text-slate-400 font-normal">İşlem</span></h3>
+                                </div>
+                                <History className="w-8 h-8 text-pink-200" />
                             </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-slate-800 group-hover:text-orange-600 transition-colors">Fiyat & Stok Gör</h3>
-                                <p className="text-slate-500 text-xs group-hover:text-slate-600">Ürün listesini incele</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* HIZLI MENÜ */}
+                    <Card className="col-span-1 shadow-sm border-0 lg:border">
+                        <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg">Hızlı İşlemler</CardTitle></CardHeader>
+                        <CardContent className="p-4 grid grid-cols-1 gap-3">
+                            <Link href="/sales">
+                                <Button variant="outline" className="w-full justify-start h-12 border-slate-200 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700">
+                                    <ShoppingCart className="mr-3 w-5 h-5 text-indigo-500" /> Yeni Satış Yap
+                                </Button>
+                            </Link>
+                            <Link href="/stocks">
+                                <Button variant="outline" className="w-full justify-start h-12 border-slate-200 hover:bg-orange-50 text-slate-600 hover:text-orange-700">
+                                    <Search className="mr-3 w-5 h-5 text-orange-500" /> Fiyat Gör / Stok Bak
+                                </Button>
+                            </Link>
+                            {/* <Button variant="outline" disabled className="w-full justify-start h-12 border-slate-200 hover:bg-red-50 text-slate-400">
+                                <ArrowRightLeft className="mr-3 w-5 h-5 text-red-300" /> İade İşlemi (Yakında)
+                            </Button> */}
+                        </CardContent>
+                    </Card>
+
+                    {/* SON SATIŞLARIM */}
+                    <Card className="col-span-2 shadow-sm border-0 lg:border">
+                        <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg flex items-center gap-2"><History className="w-5 h-5 text-slate-500" /> Son Satışlarım</CardTitle></CardHeader>
+                        <CardContent className="p-0">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b">
+                                        <tr>
+                                            <th className="px-6 py-3">Ürün</th>
+                                            <th className="px-6 py-3">Saat</th>
+                                            <th className="px-6 py-3 text-right">Adet</th>
+                                            <th className="px-6 py-3 text-right">Tutar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {myRecentSales.length === 0 ? (
+                                            <tr><td colSpan={4} className="text-center py-8 text-slate-400">Bugün henüz satış yok.</td></tr>
+                                        ) : (
+                                            myRecentSales.map((sale, idx) => (
+                                                <tr key={idx} className="bg-white border-b hover:bg-slate-50">
+                                                    <td className="px-6 py-4 font-medium text-slate-700">{sale.productName}</td>
+                                                    <td className="px-6 py-4 text-xs text-slate-500">{new Date(sale.time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</td>
+                                                    <td className="px-6 py-4 text-right">{sale.quantity}</td>
+                                                    <td className="px-6 py-4 text-right font-bold text-green-600">+{sale.totalAmount.toLocaleString()} ₺</td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                    </div>
-                </Link>
-
-            </div>
-
-            {/* Alt Bilgi */}
-            <div className="absolute bottom-4 text-center text-slate-400 text-[10px] font-medium">
-                <p>Güvenli Satış Sistemi v1.0.0</p>
-                <p className="opacity-60">Tüm işlemler kayıt altına alınmaktadır.</p>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     );
@@ -512,10 +538,4 @@ export default function DashboardPage() {
                 </div>
             );
     }
-}
-
-function PlusIcon() {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600 h-5 w-5"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
-    )
 }

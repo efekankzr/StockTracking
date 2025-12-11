@@ -5,8 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useQuery } from '@tanstack/react-query';
@@ -23,8 +23,8 @@ const formSchema = z.object({
   productId: z.coerce.number().min(1, 'Ürün seçilmelidir.'),
   quantity: z.coerce.number().min(1, 'Miktar en az 1 olmalıdır.'),
 }).refine((data) => data.sourceWarehouseId !== data.targetWarehouseId, {
-    message: "Kaynak ve Hedef depo aynı olamaz.",
-    path: ["targetWarehouseId"],
+  message: "Kaynak ve Hedef depo aynı olamaz.",
+  path: ["targetWarehouseId"],
 });
 
 type TransferFormValues = z.infer<typeof formSchema>;
@@ -41,7 +41,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({
   const { user } = useAuth();
   const { data: warehouses } = useQuery({ queryKey: ['warehouses'], queryFn: warehouseService.getAll });
   const { data: allStocks } = useQuery({ queryKey: ['stocks'], queryFn: stockService.getAll });
-  
+
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [maxQuantity, setMaxQuantity] = useState(0);
 
@@ -60,26 +60,26 @@ export const TransferForm: React.FC<TransferFormProps> = ({
 
   useEffect(() => {
     if (sourceWhId && allStocks?.data) {
-        const productsInSource = allStocks.data.filter(s => s.warehouseId === Number(sourceWhId) && s.quantity > 0);
-        setAvailableProducts(productsInSource);
-        form.setValue('productId', 0);
+      const productsInSource = allStocks.data.filter(s => s.warehouseId === Number(sourceWhId) && s.quantity > 0);
+      setAvailableProducts(productsInSource);
+      form.setValue('productId', 0);
     } else {
-        setAvailableProducts([]);
+      setAvailableProducts([]);
     }
   }, [sourceWhId, allStocks, form]);
 
   useEffect(() => {
     if (selectedProductId && availableProducts.length > 0) {
-        const stockItem = availableProducts.find(p => p.productId === Number(selectedProductId));
-        if (stockItem) {
-            setMaxQuantity(stockItem.quantity);
-        }
+      const stockItem = availableProducts.find(p => p.productId === Number(selectedProductId));
+      if (stockItem) {
+        setMaxQuantity(stockItem.quantity);
+      }
     }
   }, [selectedProductId, availableProducts]);
 
   useEffect(() => {
-    if (user?.role === 'DepoSorumlusu' && user.warehouseId) {
-        form.setValue('sourceWarehouseId', user.warehouseId);
+    if (user?.role !== 'Admin' && user?.warehouseId) {
+      form.setValue('sourceWarehouseId', user.warehouseId);
     }
   }, [user, form]);
 
@@ -87,56 +87,68 @@ export const TransferForm: React.FC<TransferFormProps> = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100 mb-2 text-sm text-blue-800">
-            <span className="font-bold">Bilgi:</span> Transfer işlemi stoğu kaynaktan düşer, hedef depoya "Onay Bekliyor" olarak gönderir.
+          <span className="font-bold">Bilgi:</span> Transfer işlemi stoğu kaynaktan düşer, hedef depoya "Onay Bekliyor" olarak gönderir.
         </div>
 
         <div className="grid grid-cols-2 gap-4 items-end">
-            <FormField
+          <FormField
             control={form.control}
             name="sourceWarehouseId"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Kaynak (Çıkış)</FormLabel>
-                <Select 
-                    onValueChange={(val) => field.onChange(Number(val))} 
+                {user?.role === 'Admin' ? (
+                  <Select
+                    onValueChange={(val) => field.onChange(Number(val))}
                     value={field.value ? field.value.toString() : ''}
-                    disabled={user?.role === 'DepoSorumlusu'}
-                >
+                  >
                     <FormControl><SelectTrigger ref={field.ref}><SelectValue placeholder="Seçiniz" /></SelectTrigger></FormControl>
                     <SelectContent>
-                        {warehouses?.data.map((w) => (
-                            <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
-                        ))}
+                      {warehouses?.data.map((w) => (
+                        <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
+                      ))}
                     </SelectContent>
-                </Select>
+                  </Select>
+                ) : (
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        value={warehouses?.data.find(w => w.id === Number(field.value))?.name || "Depo Yükleniyor..."}
+                        disabled
+                        className="bg-slate-100 text-slate-600 font-medium"
+                      />
+                      {/* Hidden input to ensure value is registered if needed, though field.onChange is handling it */}
+                    </div>
+                  </FormControl>
+                )}
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
-            <div className="flex justify-center pb-3"><ArrowRight className="text-slate-400" /></div>
-            <FormField
+          />
+          <div className="flex justify-center pb-3"><ArrowRight className="text-slate-400" /></div>
+          <FormField
             control={form.control}
             name="targetWarehouseId"
             render={({ field }) => (
-                <FormItem>
+              <FormItem>
                 <FormLabel>Hedef (Giriş)</FormLabel>
-                <Select 
-                    onValueChange={(val) => field.onChange(Number(val))} 
-                    value={field.value ? field.value.toString() : ''}
+                <Select
+                  onValueChange={(val) => field.onChange(Number(val))}
+                  value={field.value ? field.value.toString() : ''}
                 >
-                    <FormControl><SelectTrigger ref={field.ref}><SelectValue placeholder="Seçiniz" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                        {warehouses?.data
-                            .filter(w => w.id !== Number(sourceWhId))
-                            .map((w) => (
-                            <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
-                        ))}
-                    </SelectContent>
+                  <FormControl><SelectTrigger ref={field.ref}><SelectValue placeholder="Seçiniz" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    {warehouses?.data
+                      .filter(w => w.id !== Number(sourceWhId))
+                      .map((w) => (
+                        <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
+                      ))}
+                  </SelectContent>
                 </Select>
                 <FormMessage />
-                </FormItem>
+              </FormItem>
             )}
-            />
+          />
         </div>
 
         <FormField
@@ -145,8 +157,8 @@ export const TransferForm: React.FC<TransferFormProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Transfer Edilecek Ürün</FormLabel>
-              <Select 
-                onValueChange={(val) => field.onChange(Number(val))} 
+              <Select
+                onValueChange={(val) => field.onChange(Number(val))}
                 value={field.value ? field.value.toString() : ''}
                 disabled={!sourceWhId}
               >
@@ -154,7 +166,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({
                 <SelectContent>
                   {availableProducts.map((s) => (
                     <SelectItem key={s.productId} value={s.productId.toString()}>
-                        {s.productName} (Mevcut: {s.quantity})
+                      {s.productName} (Mevcut: {s.quantity})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -171,19 +183,19 @@ export const TransferForm: React.FC<TransferFormProps> = ({
             <FormItem>
               <FormLabel>Adet {maxQuantity > 0 && <span className="text-xs text-slate-500">(Max: {maxQuantity})</span>}</FormLabel>
               <FormControl>
-                <Input 
-                    type="number" 
-                    {...field} 
-                    value={(field.value as number) ?? 1}
-                    onChange={e => {
-                        const val = Number(e.target.value);
-                        if (val > maxQuantity && maxQuantity > 0) {
-                            field.onChange(maxQuantity);
-                        } else {
-                            field.onChange(val);
-                        }
-                    }}
-                    onFocus={e => e.target.select()}
+                <Input
+                  type="number"
+                  {...field}
+                  value={(field.value as number) ?? 1}
+                  onChange={e => {
+                    const val = Number(e.target.value);
+                    if (val > maxQuantity && maxQuantity > 0) {
+                      field.onChange(maxQuantity);
+                    } else {
+                      field.onChange(val);
+                    }
+                  }}
+                  onFocus={e => e.target.select()}
                 />
               </FormControl>
               <FormMessage />
@@ -193,7 +205,7 @@ export const TransferForm: React.FC<TransferFormProps> = ({
 
         <div className="flex justify-end pt-4">
           <Button type="submit" disabled={isLoading} className="w-full bg-slate-900 hover:bg-slate-800">
-            {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2"/> : null}
+            {isLoading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : null}
             Transferi Başlat
           </Button>
         </div>

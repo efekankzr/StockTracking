@@ -27,6 +27,14 @@ namespace StockTracking.WebAPI.Controllers
             return Ok(response);
         }
 
+        [HttpPut]
+        public async Task<IActionResult> Update(UpdateUserDto request)
+        {
+            var response = await _userService.UpdateUserAsync(request);
+            if (!response.Success) return BadRequest(response);
+            return Ok(response);
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin,SatisPersoneli")]
         public async Task<IActionResult> GetAll()

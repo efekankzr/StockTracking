@@ -120,12 +120,14 @@ export default function TransfersPage() {
                     <TableCell className="text-right space-x-1">
                       {item.status === 'Pending' && (
                         <>
-                          <Button
-                            variant="outline" size="sm" className="text-green-600 hover:bg-green-50 border-green-200 h-8"
-                            onClick={() => { if (confirm('Onaylıyor musunuz?')) approveMutation.mutate(item.id) }}
-                          >
-                            <CheckCircle2 className="w-4 h-4 mr-1" /> Onayla
-                          </Button>
+                          {(user?.role === 'Admin' || user?.warehouseId === item.targetWarehouseId) && (
+                            <Button
+                              variant="outline" size="sm" className="text-green-600 hover:bg-green-50 border-green-200 h-8"
+                              onClick={() => { if (confirm('Onaylıyor musunuz?')) approveMutation.mutate(item.id) }}
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-1" /> Onayla
+                            </Button>
+                          )}
                           <Button
                             variant="outline" size="sm" className="text-red-600 hover:bg-red-50 border-red-200 h-8"
                             onClick={() => { if (confirm('İptal ediyor musunuz?')) cancelMutation.mutate(item.id) }}

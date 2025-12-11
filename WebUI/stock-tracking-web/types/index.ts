@@ -218,6 +218,8 @@ export interface TransferDto {
   transferNumber: string;
   sourceWarehouseName: string;
   targetWarehouseName: string;
+  sourceWarehouseId: number;
+  targetWarehouseId: number;
   productName: string;
   quantity: number;
   status: string;
@@ -314,6 +316,15 @@ export interface CreateExpenseTransactionRequest {
 }
 
 // --- SYSTEM SETUP ---
+export interface UpdateUserRequest {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  warehouseId: number | null;
+  role: string;
+}
+
 export interface SetupStatus {
   hasCategories: boolean;
   hasWarehouses: boolean;

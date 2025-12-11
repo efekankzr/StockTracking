@@ -49,7 +49,7 @@ namespace StockTracking.Application.Services
                 Quantity = request.Quantity,
                 Status = TransferStatus.Pending,
                 CreatedByUserId = userId,
-                CreatedDate = DateTime.Now
+                CreatedDate = DateTime.UtcNow
             };
 
             sourceStock.Quantity -= request.Quantity;
@@ -62,7 +62,7 @@ namespace StockTracking.Application.Services
                 ChangeAmount = -request.Quantity,
                 ProcessType = ProcessType.TransferCikis,
                 CreatedByUserId = userId,
-                CreatedDate = DateTime.Now
+                CreatedDate = DateTime.UtcNow
             });
 
             await _unitOfWork.StockTransfers.AddAsync(transfer);
@@ -113,7 +113,7 @@ namespace StockTracking.Application.Services
 
             transfer.Status = TransferStatus.Approved;
             transfer.ApprovedByUserId = userId;
-            transfer.ApprovedDate = DateTime.Now;
+            transfer.ApprovedDate = DateTime.UtcNow;
             _unitOfWork.StockTransfers.Update(transfer);
 
             await _unitOfWork.StockLogs.AddAsync(new StockLog
@@ -123,7 +123,7 @@ namespace StockTracking.Application.Services
                 ChangeAmount = transfer.Quantity,
                 ProcessType = ProcessType.TransferGiris,
                 CreatedByUserId = userId,
-                CreatedDate = DateTime.Now,
+                CreatedDate = DateTime.UtcNow,
                 InboundPrice = incomingCost
             });
 
@@ -156,7 +156,7 @@ namespace StockTracking.Application.Services
                 ChangeAmount = transfer.Quantity,
                 ProcessType = ProcessType.TransferIptal,
                 CreatedByUserId = userId,
-                CreatedDate = DateTime.Now
+                CreatedDate = DateTime.UtcNow
             });
 
             await _unitOfWork.SaveChangesAsync();

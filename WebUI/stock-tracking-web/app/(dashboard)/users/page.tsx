@@ -71,6 +71,9 @@ export default function UsersPage() {
   }, [users, searchText, filterWarehouse, filterSystemWarehouse]);
 
 
+  // --- EDIT STATE ---
+  const [editingUser, setEditingUser] = useState<UserDto | null>(null);
+
   const createMutation = useMutation({
     mutationFn: userService.create,
     onSuccess: () => {
@@ -80,6 +83,27 @@ export default function UsersPage() {
     },
     onError: (err: any) => toast.error(err?.response?.data?.message || 'Bir hata oluştu.'),
   });
+
+  const updateMutation = useMutation({
+    mutationFn: userService.update,
+    onSuccess: () => {
+      toast.success('Personel başarıyla güncellendi.');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setIsOpen(false);
+      setEditingUser(null);
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.message || 'Güncelleme hatası.'),
+  });
+
+  const handleEditClick = (user: UserDto) => {
+    setEditingUser(user);
+    setIsOpen(true);
+  };
+
+  const handleCreateNewClick = () => {
+    setEditingUser(null);
+    setIsOpen(true);
+  };
 
   const onSubmit = (values: any) => {
     const roleId = Number(values.roleId);
@@ -96,12 +120,33 @@ export default function UsersPage() {
       username: values.username,
       email: values.email,
       phoneNumber: values.phoneNumber,
-      password: values.password,
+      password: values.password || undefined, // Şifre boşsa gönderme (backend ele almalı veya burada handle edilmeli) - DTO'da password yok zaten CreateUserDto'da vardı.
+      // UpdateDto'da password alanı yok, ama CreateDto'da var. Burada ayrım yapmamız lazım.
+      // UserService.create UserForm'dan gelen veriyi kullanıyor.
       role: roleName,
       warehouseId: roleId === 0 ? null : Number(values.warehouseId)
     };
 
-    createMutation.mutate(payload);
+    if (editingUser) {
+      // GÜNCELLEME
+      const updatePayload = {
+        id: editingUser.id.toString(), // Convert number to string
+        fullName: values.fullName,
+        email: values.email,
+        phoneNumber: values.phoneNumber,
+        warehouseId: payload.warehouseId,
+        role: payload.role
+      };
+      updateMutation.mutate(updatePayload);
+    } else {
+      // YENİ KAYIT
+      // Create işlemi password gerektiriyor.
+      if (!values.password) {
+        toast.error("Yeni kullanıcı için şifre zorunludur!");
+        return;
+      }
+      createMutation.mutate({ ...payload, password: values.password });
+    }
   };
 
   const renderRoleBadge = (role: string) => {
@@ -114,7 +159,7 @@ export default function UsersPage() {
   };
 
   const UserRow = ({ user }: { user: UserDto }) => (
-    <TableRow key={user.id} className="hover:bg-slate-50 transition-colors border-b-slate-100">
+    <TableRow key={user.id} className="hover:bg-slate-50 transition-colors border-b-slate-100 group">
       <TableCell className="py-3">
         <div className="flex flex-col">
           <span className="font-medium text-slate-900 text-sm">{user.fullName}</span>
@@ -140,10 +185,17 @@ export default function UsersPage() {
         )}
       </TableCell>
       <TableCell className="py-3 text-right">
-        {user.isActive ?
-          <span className="inline-flex items-center gap-1 text-green-600 text-[10px] font-medium bg-green-50 px-1.5 py-0.5 rounded border border-green-100"><CheckCircle2 className="w-3 h-3" /> Aktif</span> :
-          <span className="inline-flex items-center gap-1 text-red-500 text-[10px] font-medium bg-red-50 px-1.5 py-0.5 rounded border border-red-100"><XCircle className="w-3 h-3" /> Pasif</span>
-        }
+        <div className="flex items-center justify-end gap-2">
+          {user.isActive ?
+            <span className="inline-flex items-center gap-1 text-green-600 text-[10px] font-medium bg-green-50 px-1.5 py-0.5 rounded border border-green-100"><CheckCircle2 className="w-3 h-3" /> Aktif</span> :
+            <span className="inline-flex items-center gap-1 text-red-500 text-[10px] font-medium bg-red-50 px-1.5 py-0.5 rounded border border-red-100"><XCircle className="w-3 h-3" /> Pasif</span>
+          }
+          {isAdmin && (
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleEditClick(user)}>
+              <Settings2 className="w-3 h-3 text-slate-500" />
+            </Button>
+          )}
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -159,7 +211,7 @@ export default function UsersPage() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-800">Personel Yönetimi</h2>
         </div>
         {isAdmin && (
-          <Button onClick={() => setIsOpen(true)} className="bg-slate-900 hover:bg-slate-800 shadow-sm h-9 text-sm">
+          <Button onClick={handleCreateNewClick} className="bg-slate-900 hover:bg-slate-800 shadow-sm h-9 text-sm">
             <UserPlus className="mr-2 h-4 w-4" /> Yeni Personel
           </Button>
         )}
@@ -292,15 +344,23 @@ export default function UsersPage() {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Yeni Personel Ekle</DialogTitle>
+            <DialogTitle>{editingUser ? 'Personeli Düzenle' : 'Yeni Personel Ekle'}</DialogTitle>
             <DialogDescription>
-              Mağazada çalışacak yeni bir personel tanımlayın.
+              {editingUser ? 'Personel bilgilerini güncelleyin.' : 'Mağazada çalışacak yeni bir personel tanımlayın.'}
             </DialogDescription>
           </DialogHeader>
 
           <UserForm
             onSubmit={onSubmit}
-            isLoading={createMutation.isPending}
+            isLoading={createMutation.isPending || updateMutation.isPending}
+            defaultValues={editingUser ? {
+              fullName: editingUser.fullName,
+              username: editingUser.username,
+              email: editingUser.email,
+              phoneNumber: editingUser.phoneNumber,
+              roleId: editingUser.role === 'Admin' ? 0 : (editingUser.role === 'DepoSorumlusu' ? 1 : 2),
+              warehouseId: editingUser.warehouseId || 0
+            } : undefined}
           />
         </DialogContent>
       </Dialog>
