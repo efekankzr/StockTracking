@@ -12,7 +12,7 @@ namespace StockTracking.Persistence
         public static void AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<StockTrackingDbContext>(options =>
-                options.UseSqlServer(
+                options.UseNpgsql(
                     configuration.GetConnectionString("DefaultConnection"),
                     b => b.MigrationsAssembly("StockTracking.Persistence")
                 ));

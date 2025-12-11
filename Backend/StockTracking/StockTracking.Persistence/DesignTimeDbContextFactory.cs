@@ -8,8 +8,8 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<StockTrack
     {
         var optionsBuilder = new DbContextOptionsBuilder<StockTrackingDbContext>();
 
-        optionsBuilder.UseSqlServer(
-            "Server=localhost;Database=StockTrackingDb;Trusted_Connection=True;TrustServerCertificate=True"
+        optionsBuilder.UseNpgsql(
+            "Host=localhost;Database=StockTrackingDb;Username=postgres;Password=your_password"
         );
 
         return new StockTrackingDbContext(optionsBuilder.Options);
