@@ -86,7 +86,7 @@ export interface WarehouseDto {
   district: string;
   latitude: number;
   longitude: number;
-  
+
   // Kira Bilgileri
   rentTypeName?: string;
   rentTypeValue?: number;
@@ -94,7 +94,7 @@ export interface WarehouseDto {
   unofficialRentAmount: number;
   stopajRate: number;
   vatRate: number;
-  
+
   isActive: boolean;
 }
 
@@ -105,7 +105,7 @@ export interface CreateWarehouseRequest {
   district: string;
   latitude: number;
   longitude: number;
-  
+
   // Kira Bilgileri
   rentType: number; // 1: Şahıs, 2: Şirket
   officialRentAmount: number;
@@ -127,7 +127,7 @@ export interface ProductDto {
   barcode: string;
   image?: string;
   salePrice: number;
-  taxRateSelling: number; 
+  taxRateSelling: number;
   isActive: boolean;
 }
 
@@ -311,4 +311,12 @@ export interface CreateExpenseTransactionRequest {
   isVatIncluded: boolean;
   vatRate?: number;
   withholdingRate?: number;
+}
+
+// --- SYSTEM SETUP ---
+export interface SetupStatus {
+  hasCategories: boolean;
+  hasWarehouses: boolean;
+  hasProducts: boolean;
+  isSystemReady: boolean;
 }

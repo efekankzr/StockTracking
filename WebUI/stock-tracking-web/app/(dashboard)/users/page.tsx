@@ -6,17 +6,17 @@ import userService from '@/services/userService';
 import warehouseService from '@/services/warehouseService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
-import { 
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription 
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
+import {
   UserPlus, Loader2, ShieldAlert, Package, ShoppingCart, CheckCircle2, XCircle, Phone, Settings2, User as UserIcon, Search, Filter
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -48,23 +48,23 @@ export default function UsersPage() {
     let all = users.data.filter(u => u.username !== 'sysadmin');
 
     // 2. Gruplara ayır
-    let system = all.filter(u => u.username.endsWith('_yonetim') || u.username.endsWith('_kasa'));
-    let custom = all.filter(u => !u.username.endsWith('_yonetim') && !u.username.endsWith('_kasa'));
+    let system = all.filter(u => u.username.endsWith('_satis') || u.username.endsWith('_depo'));
+    let custom = all.filter(u => !u.username.endsWith('_satis') && !u.username.endsWith('_depo'));
 
     // 3. CUSTOM USERS FİLTRESİ (İsim ve Depo)
     if (searchText) {
-        custom = custom.filter(u => 
-            u.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
-            u.username.toLowerCase().includes(searchText.toLowerCase())
-        );
+      custom = custom.filter(u =>
+        u.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
+        u.username.toLowerCase().includes(searchText.toLowerCase())
+      );
     }
     if (filterWarehouse !== "all") {
-        custom = custom.filter(u => u.warehouseId === Number(filterWarehouse));
+      custom = custom.filter(u => u.warehouseId === Number(filterWarehouse));
     }
 
     // 4. SYSTEM USERS FİLTRESİ (Sadece Depo)
     if (filterSystemWarehouse !== "all") {
-        system = system.filter(u => u.warehouseId === Number(filterSystemWarehouse));
+      system = system.filter(u => u.warehouseId === Number(filterSystemWarehouse));
     }
 
     return { systemUsers: system, customUsers: custom };
@@ -83,22 +83,22 @@ export default function UsersPage() {
 
   const onSubmit = (values: any) => {
     const roleId = Number(values.roleId);
-    let roleName = "SatisPersoneli"; 
+    let roleName = "SatisPersoneli";
 
     switch (roleId) {
-        case 0: roleName = "Admin"; break;
-        case 1: roleName = "DepoSorumlusu"; break;
-        case 2: roleName = "SatisPersoneli"; break;
+      case 0: roleName = "Admin"; break;
+      case 1: roleName = "DepoSorumlusu"; break;
+      case 2: roleName = "SatisPersoneli"; break;
     }
 
     const payload = {
-        fullName: values.fullName,
-        username: values.username,
-        email: values.email,
-        phoneNumber: values.phoneNumber,
-        password: values.password,
-        role: roleName,
-        warehouseId: roleId === 0 ? null : Number(values.warehouseId)
+      fullName: values.fullName,
+      username: values.username,
+      email: values.email,
+      phoneNumber: values.phoneNumber,
+      password: values.password,
+      role: roleName,
+      warehouseId: roleId === 0 ? null : Number(values.warehouseId)
     };
 
     createMutation.mutate(payload);
@@ -125,166 +125,166 @@ export default function UsersPage() {
         <div className="flex flex-col gap-0.5">
           <span className="text-xs text-slate-600">{user.email}</span>
           <span className="text-[10px] text-slate-400 flex items-center gap-1">
-              <Phone className="w-3 h-3"/> {user.phoneNumber}
+            <Phone className="w-3 h-3" /> {user.phoneNumber}
           </span>
         </div>
       </TableCell>
       <TableCell className="py-3">{renderRoleBadge(user.role)}</TableCell>
       <TableCell className="py-3">
-          {user.warehouseName ? (
-              <span className="flex items-center gap-1 text-slate-700 font-medium text-xs">
-                  <Package className="w-3.5 h-3.5 text-slate-400"/> {user.warehouseName}
-              </span>
-          ) : (
-              <span className="text-slate-400 italic text-[10px]">- Merkez -</span>
-          )}
+        {user.warehouseName ? (
+          <span className="flex items-center gap-1 text-slate-700 font-medium text-xs">
+            <Package className="w-3.5 h-3.5 text-slate-400" /> {user.warehouseName}
+          </span>
+        ) : (
+          <span className="text-slate-400 italic text-[10px]">- Merkez -</span>
+        )}
       </TableCell>
       <TableCell className="py-3 text-right">
-        {user.isActive ? 
-            <span className="inline-flex items-center gap-1 text-green-600 text-[10px] font-medium bg-green-50 px-1.5 py-0.5 rounded border border-green-100"><CheckCircle2 className="w-3 h-3" /> Aktif</span> : 
-            <span className="inline-flex items-center gap-1 text-red-500 text-[10px] font-medium bg-red-50 px-1.5 py-0.5 rounded border border-red-100"><XCircle className="w-3 h-3" /> Pasif</span>
+        {user.isActive ?
+          <span className="inline-flex items-center gap-1 text-green-600 text-[10px] font-medium bg-green-50 px-1.5 py-0.5 rounded border border-green-100"><CheckCircle2 className="w-3 h-3" /> Aktif</span> :
+          <span className="inline-flex items-center gap-1 text-red-500 text-[10px] font-medium bg-red-50 px-1.5 py-0.5 rounded border border-red-100"><XCircle className="w-3 h-3" /> Pasif</span>
         }
       </TableCell>
     </TableRow>
   );
 
-  if (isLoading) return <div className="flex justify-center p-10"><Loader2 className="animate-spin h-8 w-8 text-blue-600" /></div>;
+  if (isLoading) return <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin h-8 w-8 text-blue-600" /></div>;
 
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col gap-4 overflow-hidden">
-      
+    <div className="h-full flex flex-col p-6 space-y-4 min-h-0 bg-slate-50/50">
+
       {/* ÜST KISIM */}
       <div className="flex justify-between items-center shrink-0">
         <div>
-            <h2 className="text-2xl font-bold tracking-tight text-slate-800">Personel Yönetimi</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-800">Personel Yönetimi</h2>
         </div>
         {isAdmin && (
-            <Button onClick={() => setIsOpen(true)} className="bg-slate-900 hover:bg-slate-800 shadow-sm h-9 text-sm">
+          <Button onClick={() => setIsOpen(true)} className="bg-slate-900 hover:bg-slate-800 shadow-sm h-9 text-sm">
             <UserPlus className="mr-2 h-4 w-4" /> Yeni Personel
-            </Button>
+          </Button>
         )}
       </div>
 
       {/* GRID YAPISI (Admin ise 2 Kolon, Değilse 1 Kolon) */}
-      <div className={`grid gap-6 h-full min-h-0 ${isAdmin ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
-        
+      <div className={`grid gap-6 flex-1 min-h-0 ${isAdmin ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'}`}>
+
         {/* TABLO 1: MAĞAZA PERSONELLERİ */}
         <Card className="h-full flex flex-col shadow-sm border-l-4 border-l-blue-500 overflow-hidden">
-            <CardHeader className="pb-3 px-4 py-3 shrink-0 border-b bg-slate-50/50 flex flex-row items-center justify-between space-y-0">
-                <CardTitle className="text-base font-medium flex items-center gap-2 text-slate-800">
-                    <UserIcon className="w-4 h-4 text-blue-600" /> 
-                    Mağaza Personeli
-                    <span className="text-xs font-normal text-slate-500 bg-white px-2 py-0.5 rounded border">
-                        {customUsers.length}
-                    </span>
-                </CardTitle>
-            </CardHeader>
-            
-            {/* FİLTRELER */}
-            <div className="p-3 flex gap-2 border-b bg-white shrink-0">
-                <div className="relative flex-1">
-                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-400" />
-                    <Input 
-                        placeholder="İsim veya kullanıcı adı..." 
-                        className="pl-8 h-8 text-xs" 
-                        value={searchText}
-                        onChange={e => setSearchText(e.target.value)}
-                    />
-                </div>
-                <div className="w-[140px]">
-                    <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
-                        <SelectTrigger className="h-8 text-xs">
-                            <div className="flex items-center gap-2 text-slate-600">
-                                <Filter className="w-3 h-3" />
-                                <SelectValue placeholder="Tüm Depolar" />
-                            </div>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Tüm Depolar</SelectItem>
-                            {warehouses?.data.map(w => (
-                                <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
+          <CardHeader className="pb-3 px-4 py-3 shrink-0 border-b bg-slate-50/50 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-base font-medium flex items-center gap-2 text-slate-800">
+              <UserIcon className="w-4 h-4 text-blue-600" />
+              Mağaza Personeli
+              <span className="text-xs font-normal text-slate-500 bg-white px-2 py-0.5 rounded border">
+                {customUsers.length}
+              </span>
+            </CardTitle>
+          </CardHeader>
 
-            <CardContent className="p-0 flex-1 overflow-y-auto">
-                <Table>
-                    <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
-                        <TableRow className="hover:bg-transparent border-b-slate-200">
-                            <TableHead className="h-9 text-xs">Ad Soyad</TableHead>
-                            <TableHead className="h-9 text-xs">İletişim</TableHead>
-                            <TableHead className="h-9 text-xs">Rol</TableHead>
-                            <TableHead className="h-9 text-xs">Depo</TableHead>
-                            <TableHead className="h-9 text-xs text-right">Durum</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {customUsers.length === 0 ? (
-                            <TableRow><TableCell colSpan={5} className="text-center h-24 text-gray-500 text-xs">Personel bulunamadı.</TableCell></TableRow>
-                        ) : (
-                            customUsers.map(user => <UserRow key={user.id} user={user} />)
-                        )}
-                    </TableBody>
-                </Table>
-            </CardContent>
+          {/* FİLTRELER */}
+          <div className="p-3 flex gap-2 border-b bg-white shrink-0">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-400" />
+              <Input
+                placeholder="İsim veya kullanıcı adı..."
+                className="pl-8 h-8 text-xs"
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+              />
+            </div>
+            <div className="w-[140px]">
+              <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
+                <SelectTrigger className="h-8 text-xs">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Filter className="w-3 h-3" />
+                    <SelectValue placeholder="Tüm Depolar" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tüm Depolar</SelectItem>
+                  {warehouses?.data.map(w => (
+                    <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <CardContent className="p-0 flex-1 overflow-y-auto">
+            <Table>
+              <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                <TableRow className="hover:bg-transparent border-b-slate-200">
+                  <TableHead className="h-9 text-xs">Ad Soyad</TableHead>
+                  <TableHead className="h-9 text-xs">İletişim</TableHead>
+                  <TableHead className="h-9 text-xs">Rol</TableHead>
+                  <TableHead className="h-9 text-xs">Depo</TableHead>
+                  <TableHead className="h-9 text-xs text-right">Durum</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {customUsers.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center h-24 text-gray-500 text-xs">Personel bulunamadı.</TableCell></TableRow>
+                ) : (
+                  customUsers.map(user => <UserRow key={user.id} user={user} />)
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
         </Card>
 
         {/* TABLO 2: SİSTEM HESAPLARI (SADECE ADMIN) */}
         {isAdmin && (
-            <Card className="h-full flex flex-col shadow-sm border-l-4 border-l-orange-400 overflow-hidden">
-                <CardHeader className="pb-3 px-4 py-3 shrink-0 border-b bg-orange-50/30 flex flex-row items-center justify-between space-y-0">
-                    <CardTitle className="text-base font-medium flex items-center gap-2 text-slate-800">
-                        <Settings2 className="w-4 h-4 text-orange-600" /> 
-                        Sistem Hesapları
-                        <span className="text-xs font-normal text-slate-500 bg-white px-2 py-0.5 rounded border">
-                            {systemUsers.length}
-                        </span>
-                    </CardTitle>
-                </CardHeader>
+          <Card className="h-full flex flex-col shadow-sm border-l-4 border-l-orange-400 overflow-hidden">
+            <CardHeader className="pb-3 px-4 py-3 shrink-0 border-b bg-orange-50/30 flex flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-base font-medium flex items-center gap-2 text-slate-800">
+                <Settings2 className="w-4 h-4 text-orange-600" />
+                Sistem Hesapları
+                <span className="text-xs font-normal text-slate-500 bg-white px-2 py-0.5 rounded border">
+                  {systemUsers.length}
+                </span>
+              </CardTitle>
+            </CardHeader>
 
-                {/* FİLTRE (Sadece Depo) */}
-                <div className="p-3 flex gap-2 border-b bg-white shrink-0 justify-end">
-                     <div className="w-[180px]">
-                        <Select value={filterSystemWarehouse} onValueChange={setFilterSystemWarehouse}>
-                            <SelectTrigger className="h-8 text-xs">
-                                <div className="flex items-center gap-2 text-slate-600">
-                                    <Filter className="w-3 h-3" />
-                                    <SelectValue placeholder="Tüm Depolar" />
-                                </div>
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tüm Depolar</SelectItem>
-                                {warehouses?.data.map(w => (
-                                    <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+            {/* FİLTRE (Sadece Depo) */}
+            <div className="p-3 flex gap-2 border-b bg-white shrink-0 justify-end">
+              <div className="w-[180px]">
+                <Select value={filterSystemWarehouse} onValueChange={setFilterSystemWarehouse}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Filter className="w-3 h-3" />
+                      <SelectValue placeholder="Tüm Depolar" />
                     </div>
-                </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tüm Depolar</SelectItem>
+                    {warehouses?.data.map(w => (
+                      <SelectItem key={w.id} value={w.id.toString()}>{w.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-                <CardContent className="p-0 flex-1 overflow-y-auto">
-                    <Table>
-                        <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
-                            <TableRow className="hover:bg-transparent border-b-slate-200">
-                                <TableHead className="h-9 text-xs">Hesap Adı</TableHead>
-                                <TableHead className="h-9 text-xs">İletişim</TableHead>
-                                <TableHead className="h-9 text-xs">Rol</TableHead>
-                                <TableHead className="h-9 text-xs">Depo</TableHead>
-                                <TableHead className="h-9 text-xs text-right">Durum</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {systemUsers.length === 0 ? (
-                                <TableRow><TableCell colSpan={5} className="text-center h-24 text-gray-500 text-xs">Hesap bulunamadı.</TableCell></TableRow>
-                            ) : (
-                                systemUsers.map(user => <UserRow key={user.id} user={user} />)
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+            <CardContent className="p-0 flex-1 overflow-y-auto">
+              <Table>
+                <TableHeader className="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                  <TableRow className="hover:bg-transparent border-b-slate-200">
+                    <TableHead className="h-9 text-xs">Hesap Adı</TableHead>
+                    <TableHead className="h-9 text-xs">İletişim</TableHead>
+                    <TableHead className="h-9 text-xs">Rol</TableHead>
+                    <TableHead className="h-9 text-xs">Depo</TableHead>
+                    <TableHead className="h-9 text-xs text-right">Durum</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {systemUsers.length === 0 ? (
+                    <TableRow><TableCell colSpan={5} className="text-center h-24 text-gray-500 text-xs">Hesap bulunamadı.</TableCell></TableRow>
+                  ) : (
+                    systemUsers.map(user => <UserRow key={user.id} user={user} />)
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         )}
       </div>
 
@@ -297,10 +297,10 @@ export default function UsersPage() {
               Mağazada çalışacak yeni bir personel tanımlayın.
             </DialogDescription>
           </DialogHeader>
-          
-          <UserForm 
-            onSubmit={onSubmit} 
-            isLoading={createMutation.isPending} 
+
+          <UserForm
+            onSubmit={onSubmit}
+            isLoading={createMutation.isPending}
           />
         </DialogContent>
       </Dialog>

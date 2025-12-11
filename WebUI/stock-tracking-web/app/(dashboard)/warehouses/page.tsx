@@ -102,11 +102,11 @@ export default function WarehousesPage() {
     else createMutation.mutate(values);
   };
 
-  if (isLoading) return <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>;
+  if (isLoading) return <div className="flex justify-center items-center h-full"><Loader2 className="animate-spin h-8 w-8 text-slate-400" /></div>;
   if (isError) return <div className="text-red-500 text-center p-10">Veriler yüklenemedi.</div>;
 
   return (
-    <div className="h-[calc(100vh-100px)] flex flex-col gap-4">
+    <div className="h-full flex flex-col p-6 gap-6 min-h-0">
 
       <div className="flex justify-between items-center shrink-0">
         <h2 className="text-2xl font-bold tracking-tight text-slate-800">Depo Yönetimi</h2>
@@ -158,10 +158,10 @@ export default function WarehousesPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-0">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <div className="lg:col-span-5 h-full flex flex-col min-h-0">
-          <Card className="h-full flex flex-col border shadow-sm overflow-hidden">
+        <div className="lg:col-span-4 h-full flex flex-col min-h-0">
+          <Card className="h-full flex flex-col border shadow-sm overflow-hidden min-h-0">
             <CardHeader className="pb-3 pt-4 px-4 shrink-0 border-b bg-slate-50/50">
               <CardTitle className="text-base flex items-center gap-2 font-semibold text-slate-700">
                 <MapIcon className="w-4 h-4 text-blue-600" />
@@ -169,7 +169,7 @@ export default function WarehousesPage() {
               </CardTitle>
             </CardHeader>
 
-            <CardContent className="flex-1 overflow-y-auto p-0">
+            <CardContent className="flex-1 overflow-y-auto p-0 min-h-0">
               <Table>
                 <TableHeader className="sticky top-0 bg-white shadow-sm z-10">
                   <TableRow className="hover:bg-transparent border-b-slate-200">
@@ -212,13 +212,13 @@ export default function WarehousesPage() {
           </Card>
         </div>
 
-        <div className="hidden lg:block lg:col-span-7 h-full rounded-xl overflow-hidden border shadow-sm bg-white relative">
+        <div className="hidden lg:block lg:col-span-8 h-full rounded-xl overflow-hidden border shadow-sm bg-white relative min-h-0">
           <WarehousesMap warehouses={activeWarehouses} />
         </div>
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[95vw] w-full h-[85vh] p-0 overflow-hidden flex flex-col">
+        <DialogContent className="max-w-[95vw] sm:max-w-[95vw] w-full h-[90vh] p-0 overflow-hidden flex flex-col">
           <DialogHeader className="px-6 py-4 border-b shrink-0 bg-slate-50/50">
             <DialogTitle>{editingItem ? 'Depoyu Düzenle' : 'Yeni Depo Ekle'}</DialogTitle>
             <DialogDescription>Depo ve konum bilgilerini giriniz.</DialogDescription>

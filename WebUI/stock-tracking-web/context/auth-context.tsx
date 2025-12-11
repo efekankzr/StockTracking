@@ -7,6 +7,7 @@ import { jwtDecode } from 'jwt-decode';
 interface User {
   id: number;
   username: string;
+  fullName: string;
   role: string;
   warehouseId?: number;
 }
@@ -20,7 +21,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
-  logout: () => {},
+  logout: () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -29,36 +30,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const token = Cookies.get('token');
-    
+
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
         console.log("🔑 HAM TOKEN VERİSİ:", decoded);
 
-        let roleClaim = 
-             decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
-             decoded['role'] ||
-             decoded['Role'] ||
-             decoded['roles'];
+        let roleClaim =
+          decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+          decoded['role'] ||
+          decoded['Role'] ||
+          decoded['roles'];
 
         if (Array.isArray(roleClaim)) {
-            roleClaim = roleClaim[0];
+          roleClaim = roleClaim[0];
         }
 
         if (!roleClaim) {
-            console.warn("⚠️ Rol bulunamadı, varsayılan atanıyor.");
-            roleClaim = "User";
+          console.warn("⚠️ Rol bulunamadı, varsayılan atanıyor.");
+          roleClaim = "User";
         }
 
         const idClaim = decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || decoded['nameid'] || decoded['id'];
-        const nameClaim = decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || decoded['unique_name'] || decoded['sub'];
+        const usernameClaim = decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || decoded['unique_name'] || decoded['sub'];
+        const fullNameClaim = decoded['FullName'] || decoded['fullname'] || usernameClaim;
         const warehouseIdClaim = decoded['WarehouseId'];
 
-        console.log("✅ GİRİŞ YAPAN:", { id: idClaim, name: nameClaim, role: roleClaim });
+        console.log("✅ GİRİŞ YAPAN:", { id: idClaim, username: usernameClaim, role: roleClaim });
 
         setUser({
           id: Number(idClaim),
-          username: nameClaim,
+          username: usernameClaim,
+          fullName: fullNameClaim,
           role: roleClaim,
           warehouseId: warehouseIdClaim ? Number(warehouseIdClaim) : undefined,
         });
@@ -68,9 +71,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         Cookies.remove('token', { path: '/' });
       }
     } else {
-        console.log("ℹ️ Token bulunamadı (Cookie boş).");
+      console.log("ℹ️ Token bulunamadı (Cookie boş).");
     }
-    
+
     setIsLoading(false);
   }, []);
 
