@@ -1,0 +1,71 @@
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using StockTracking.Application.DTOs.User;
+using StockTracking.Application.Interfaces.Services;
+using StockTracking.Application.Wrappers;
+using StockTracking.Domain.Entities;
+
+namespace StockTracking.Application.Services
+{
+    public class UserService : IUserService
+    {
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly IMapper _mapper;
+
+        public UserService(UserManager<User> userManager, RoleManager<IdentityRole<int>> roleManager, IMapper mapper)
+        {
+            _userManager = userManager;
+            _roleManager = roleManager;
+            _mapper = mapper;
+        }
+
+        public async Task<ServiceResponse<List<UserDto>>> GetAllAsync()
+        {
+            var users = await _userManager.Users
+                .Include(u => u.Warehouse)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var dtos = new List<UserDto>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                var dto = _mapper.Map<UserDto>(user);
+                dto.Role = roles.FirstOrDefault() ?? "User";
+                dtos.Add(dto);
+            }
+
+            return new ServiceResponse<List<UserDto>>(dtos);
+        }
+
+        public async Task<ServiceResponse<bool>> CreateUserAsync(CreateUserDto request)
+        {
+            var existing = await _userManager.FindByNameAsync(request.Username);
+            if (existing != null) return new ServiceResponse<bool>("Kullanıcı zaten var.");
+
+            var user = new User
+            {
+                UserName = request.Username,
+                Email = request.Email,
+                FullName = request.FullName,
+                PhoneNumber = request.PhoneNumber,
+                WarehouseId = request.WarehouseId,
+                IsActive = true
+            };
+
+            var result = await _userManager.CreateAsync(user, request.Password);
+            if (!result.Succeeded)
+                return new ServiceResponse<bool>(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            if (!await _roleManager.RoleExistsAsync(request.Role))
+                await _roleManager.CreateAsync(new IdentityRole<int>(request.Role));
+
+            await _userManager.AddToRoleAsync(user, request.Role);
+
+            return new ServiceResponse<bool>(true, "Personel oluşturuldu.");
+        }
+    }
+}
