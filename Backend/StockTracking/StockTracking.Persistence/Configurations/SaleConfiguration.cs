@@ -28,6 +28,7 @@ namespace StockTracking.Persistence.Configurations
             builder.HasOne(s => s.Warehouse)
                    .WithMany(w => w.Sales)
                    .HasForeignKey(s => s.WarehouseId)
+                   .IsRequired(false)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(s => s.SaleItems)

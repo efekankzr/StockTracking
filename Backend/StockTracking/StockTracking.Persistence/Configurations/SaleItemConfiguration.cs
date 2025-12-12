@@ -18,6 +18,7 @@ namespace StockTracking.Persistence.Configurations
             builder.HasOne(i => i.Product)
                    .WithMany(p => p.SaleItems)
                    .HasForeignKey(i => i.ProductId)
+                   .IsRequired(false)
                    .OnDelete(DeleteBehavior.Restrict);
         }
     }

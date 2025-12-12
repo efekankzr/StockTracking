@@ -26,12 +26,14 @@ namespace StockTracking.Persistence.Configurations
             builder.HasOne(t => t.ExpenseCategory)
                    .WithMany(c => c.Transactions)
                    .HasForeignKey(t => t.ExpenseCategoryId)
+                   .IsRequired(false)
                    .OnDelete(DeleteBehavior.Restrict);
 
             // Depo silinirse, o depoya ait giderler durmalı (Rapor için)
             builder.HasOne(t => t.Warehouse)
                    .WithMany() // Warehouse tarafında liste tutmuyoruz
                    .HasForeignKey(t => t.WarehouseId)
+                   .IsRequired(false)
                    .OnDelete(DeleteBehavior.Restrict);
 
             // Personel silinirse, kaydı giren kişi null olmasın (Restrict)

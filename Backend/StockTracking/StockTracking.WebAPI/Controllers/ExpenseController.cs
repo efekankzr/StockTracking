@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using StockTracking.Application.DTOs.Expense;
 using StockTracking.Application.Interfaces.Services;
 using System.Security.Claims;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System;
 

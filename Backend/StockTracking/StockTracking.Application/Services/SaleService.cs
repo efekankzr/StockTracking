@@ -45,7 +45,7 @@ namespace StockTracking.Application.Services
                 SaleItems = new List<SaleItem>()
             };
 
-            decimal totalVatAmount = 0;
+        
 
             foreach (var itemDto in request.Items)
             {

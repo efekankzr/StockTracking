@@ -7,16 +7,16 @@ namespace StockTracking.Persistence.Repositories
     {
         private readonly StockTrackingDbContext _context;
 
-        private IProductRepository _products;
-        private ICategoryRepository _categories;
-        private IWarehouseRepository _warehouses;
-        private IStockRepository _stocks;
-        private IStockLogRepository _stockLogs;
-        private ISaleRepository _sales;
-        private IUserRepository _users;
-        private ITransferRepository _stockTransfers;
-        private IExpenseCategoryRepository _expenseCategories;
-        private IExpenseTransactionRepository _expenseTransactions;
+        private IProductRepository? _products;
+        private ICategoryRepository? _categories;
+        private IWarehouseRepository? _warehouses;
+        private IStockRepository? _stocks;
+        private IStockLogRepository? _stockLogs;
+        private ISaleRepository? _sales;
+        private IUserRepository? _users;
+        private ITransferRepository? _stockTransfers;
+        private IExpenseCategoryRepository? _expenseCategories;
+        private IExpenseTransactionRepository? _expenseTransactions;
 
         public UnitOfWork(StockTrackingDbContext context)
         {

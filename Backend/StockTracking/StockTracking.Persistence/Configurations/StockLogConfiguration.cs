@@ -15,11 +15,13 @@ namespace StockTracking.Persistence.Configurations
             builder.HasOne(l => l.Product)
                    .WithMany(p => p.StockLogs)
                    .HasForeignKey(l => l.ProductId)
+                   .IsRequired(false)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(l => l.Warehouse)
                    .WithMany(w => w.StockLogs)
                    .HasForeignKey(l => l.WarehouseId)
+                   .IsRequired(false)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(l => l.User)
