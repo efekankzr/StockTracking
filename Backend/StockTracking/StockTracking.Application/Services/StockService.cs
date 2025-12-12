@@ -1,4 +1,4 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using StockTracking.Application.DTOs.Stock;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
@@ -58,7 +58,7 @@ namespace StockTracking.Application.Services
 
                     if (request.UnitPrice.HasValue && request.Quantity > 0)
                     {
-                        // AÄŸÄ±rlÄ±klÄ± Ortalama Maliyet HesabÄ±
+                        // Aðýrlýklý Ortalama Maliyet Hesabý
                         decimal currentTotalValue = stock.Quantity * stock.AverageCost;
                         decimal incomingTotalValue = request.Quantity * incomingPrice;
                         int newTotalQuantity = stock.Quantity + request.Quantity;
@@ -68,7 +68,7 @@ namespace StockTracking.Application.Services
                             stock.AverageCost = (currentTotalValue + incomingTotalValue) / newTotalQuantity;
                         }
 
-                        // Son AlÄ±ÅŸ FiyatÄ±
+                        // Son Alýþ Fiyatý
                         stock.LastPurchasePrice = incomingPrice;
                     }
                     break;
@@ -82,7 +82,7 @@ namespace StockTracking.Application.Services
                     break;
 
                 default:
-                    return new ServiceResponse<bool>("GeÃ§ersiz iÅŸlem tipi.");
+                    return ServiceResponse<bool>.Fail("Geçersiz iþlem tipi.");
             }
 
             if (stock.Quantity + quantityChange < 0)
@@ -106,7 +106,7 @@ namespace StockTracking.Application.Services
             await _unitOfWork.StockLogs.AddAsync(log);
 
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Stok hareketi iÅŸlendi.");
+            return new ServiceResponse<bool>(true, "Stok hareketi iþlendi.");
         }
     }
 }

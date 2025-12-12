@@ -1,4 +1,4 @@
-﻿using StockTracking.Application.DTOs.Stock;
+using StockTracking.Application.DTOs.Stock;
 using StockTracking.Application.Wrappers;
 
 namespace StockTracking.Application.Interfaces.Services

@@ -1,4 +1,4 @@
-ï»¿using FluentValidation;
+using FluentValidation;
 using StockTracking.Application.DTOs.User;
 
 namespace StockTracking.Application.Validations.User
@@ -8,32 +8,32 @@ namespace StockTracking.Application.Validations.User
         public CreateUserValidator()
         {
             RuleFor(x => x.FullName)
-                .NotEmpty().WithMessage("Ad Soyad boÅŸ geÃ§ilemez.");
+                .NotEmpty().WithMessage("Ad Soyad boş geçilemez.");
 
             RuleFor(x => x.Username)
-                .NotEmpty().WithMessage("KullanÄ±cÄ± adÄ± boÅŸ geÃ§ilemez.")
-                .MinimumLength(3).WithMessage("KullanÄ±cÄ± adÄ± en az 3 karakter olmalÄ±dÄ±r.");
+                .NotEmpty().WithMessage("Kullanıcı adı boş geçilemez.")
+                .MinimumLength(3).WithMessage("Kullanıcı adı en az 3 karakter olmalıdır.");
 
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("E-posta adresi boÅŸ geÃ§ilemez.")
-                .EmailAddress().WithMessage("GeÃ§erli bir e-posta adresi giriniz.");
+                .NotEmpty().WithMessage("E-posta adresi boş geçilemez.")
+                .EmailAddress().WithMessage("Geçerli bir e-posta adresi giriniz.");
 
             RuleFor(x => x.PhoneNumber)
-                .NotEmpty().WithMessage("Telefon numarasÄ± zorunludur.");
+                .NotEmpty().WithMessage("Telefon numarası zorunludur.");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("Åifre boÅŸ geÃ§ilemez.")
-                .MinimumLength(6).WithMessage("Åifre en az 6 karakter olmalÄ±dÄ±r.");
+                .NotEmpty().WithMessage("Şifre boş geçilemez.")
+                .MinimumLength(6).WithMessage("Şifre en az 6 karakter olmalıdır.");
 
             RuleFor(x => x.Role)
-                .NotEmpty().WithMessage("Rol seÃ§imi zorunludur.")
+                .NotEmpty().WithMessage("Rol seçimi zorunludur.")
                 .Must(role => role == "Admin" || role == "DepoSorumlusu" || role == "SatisPersoneli")
-                .WithMessage("GeÃ§ersiz rol seÃ§imi.");
+                .WithMessage("Geçersiz rol seçimi.");
 
             When(x => x.Role != "Admin", () => {
                 RuleFor(x => x.WarehouseId)
-                    .NotNull().WithMessage("Personel iÃ§in depo seÃ§imi zorunludur.")
-                    .GreaterThan(0).WithMessage("GeÃ§erli bir depo seÃ§iniz.");
+                    .NotNull().WithMessage("Personel için depo seçimi zorunludur.")
+                    .GreaterThan(0).WithMessage("Geçerli bir depo seçiniz.");
             });
         }
     }

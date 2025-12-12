@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Application.DTOs.Warehouse
+namespace StockTracking.Application.DTOs.Warehouse
 {
     public class UpdateWarehouseDto : CreateWarehouseDto
     {

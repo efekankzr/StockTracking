@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Application.DTOs.Product
+namespace StockTracking.Application.DTOs.Product
 {
     public class UpdateProductDto : CreateProductDto
     {

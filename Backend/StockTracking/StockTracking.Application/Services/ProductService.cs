@@ -1,4 +1,4 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using StockTracking.Application.DTOs.Product;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
@@ -27,7 +27,7 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<ProductDto>> GetByIdAsync(int id)
         {
             var product = await _unitOfWork.Products.GetByIdAsync(id);
-            if (product == null) return new ServiceResponse<ProductDto>("ÃœrÃ¼n bulunamadÄ±.");
+            if (product == null) return ServiceResponse<ProductDto>.Fail("Ürün bulunamadý.");
             return new ServiceResponse<ProductDto>(_mapper.Map<ProductDto>(product));
         }
 
@@ -48,54 +48,54 @@ namespace StockTracking.Application.Services
                 await _unitOfWork.Stocks.AddRangeAsync(newStocks);
                 await _unitOfWork.SaveChangesAsync();
             }
-            return new ServiceResponse<ProductDto>(_mapper.Map<ProductDto>(product), "ÃœrÃ¼n eklendi.");
+            return new ServiceResponse<ProductDto>(_mapper.Map<ProductDto>(product), "Ürün eklendi.");
         }
 
         public async Task<ServiceResponse<bool>> UpdateAsync(UpdateProductDto request)
         {
             var product = await _unitOfWork.Products.GetByIdAsync(request.Id);
-            if (product == null) return new ServiceResponse<bool>("ÃœrÃ¼n bulunamadÄ±.");
+            if (product == null) return ServiceResponse<bool>.Fail("Ürün bulunamadý.");
 
             _mapper.Map(request, product);
             _unitOfWork.Products.Update(product);
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "ÃœrÃ¼n gÃ¼ncellendi.");
+            return new ServiceResponse<bool>(true, "Ürün güncellendi.");
         }
 
         public async Task<ServiceResponse<bool>> DeleteAsync(int id)
         {
             var product = await _unitOfWork.Products.GetByIdAsync(id);
-            if (product == null) return new ServiceResponse<bool>("ÃœrÃ¼n bulunamadÄ±.");
+            if (product == null) return ServiceResponse<bool>.Fail("Ürün bulunamadý.");
 
             var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == id && s.Quantity > 0);
-            if (hasStock != null) return new ServiceResponse<bool>("Bu Ã¼rÃ¼nÃ¼n stoÄŸu var, silinemez.");
+            if (hasStock != null) return ServiceResponse<bool>.Fail("Bu ürünün stoðu var, silinemez.");
 
             await _unitOfWork.Products.ArchiveAsync(id);
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "ÃœrÃ¼n pasife alÄ±ndÄ±.");
+            return new ServiceResponse<bool>(true, "Ürün pasife alýndý.");
         }
 
         public async Task<ServiceResponse<bool>> ActivateAsync(int id)
         {
             var product = await _unitOfWork.Products.GetByIdAsync(id);
-            if (product == null) return new ServiceResponse<bool>("ÃœrÃ¼n bulunamadÄ±.");
+            if (product == null) return ServiceResponse<bool>.Fail("Ürün bulunamadý.");
 
             await _unitOfWork.Products.RestoreAsync(id);
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "ÃœrÃ¼n aktif edildi.");
+            return new ServiceResponse<bool>(true, "Ürün aktif edildi.");
         }
 
         public async Task<ServiceResponse<bool>> HardDeleteAsync(int id)
         {
             var product = await _unitOfWork.Products.GetByIdAsync(id);
-            if (product == null) return new ServiceResponse<bool>("ÃœrÃ¼n bulunamadÄ±.");
+            if (product == null) return ServiceResponse<bool>.Fail("Ürün bulunamadý.");
 
             var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == id && s.Quantity > 0);
-            if (hasStock != null) return new ServiceResponse<bool>("Stok var, silinemez.");
+            if (hasStock != null) return ServiceResponse<bool>.Fail("Stok var, silinemez.");
 
             _unitOfWork.Products.Delete(product);
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "ÃœrÃ¼n tamamen silindi.");
+            return new ServiceResponse<bool>(true, "Ürün tamamen silindi.");
         }
     }
 }

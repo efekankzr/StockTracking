@@ -1,4 +1,4 @@
-﻿using StockTracking.Domain.Entities.Common;
+using StockTracking.Domain.Entities.Common;
 using System.Linq.Expressions;
 
 namespace StockTracking.Application.Interfaces.Repositories

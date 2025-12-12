@@ -1,4 +1,4 @@
-﻿using StockTracking.Domain.Enums;
+using StockTracking.Domain.Enums;
 
 namespace StockTracking.Application.DTOs.Sale
 {

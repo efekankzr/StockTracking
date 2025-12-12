@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using StockTracking.Application.Interfaces.Services;
 using StockTracking.Application.Services;

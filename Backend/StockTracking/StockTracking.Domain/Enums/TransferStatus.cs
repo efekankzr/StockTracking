@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Domain.Enums
+namespace StockTracking.Domain.Enums
 {
     public enum TransferStatus
     {

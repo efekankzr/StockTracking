@@ -1,10 +1,10 @@
-ï»¿using StockTracking.Domain.Entities;
+using StockTracking.Domain.Entities;
 
 namespace StockTracking.Application.Interfaces.Repositories
 {
     public interface IExpenseTransactionRepository : IGenericRepository<ExpenseTransaction>
     {
-        // Giderleri Ã§ekerken Kategori, Depo ve Personel adlarÄ±nÄ± da getirmek iÃ§in
+        // Giderleri çekerken Kategori, Depo ve Personel adlarýný da getirmek için
         Task<List<ExpenseTransaction>> GetAllWithDetailsAsync();
     }
 }

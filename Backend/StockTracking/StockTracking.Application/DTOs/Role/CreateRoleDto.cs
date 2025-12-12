@@ -1,7 +1,7 @@
-﻿namespace StockTracking.Application.DTOs.Role
+namespace StockTracking.Application.DTOs.Role
 {
     public class CreateRoleDto
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

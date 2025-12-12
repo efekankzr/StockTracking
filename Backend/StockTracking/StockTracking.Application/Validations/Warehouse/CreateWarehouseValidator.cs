@@ -1,4 +1,4 @@
-ï»¿using FluentValidation;
+using FluentValidation;
 using StockTracking.Application.DTOs.Warehouse;
 
 namespace StockTracking.Application.Validations.Warehouse
@@ -7,14 +7,14 @@ namespace StockTracking.Application.Validations.Warehouse
     {
         public CreateWarehouseValidator()
         {
-            RuleFor(x => x.Name).NotEmpty().WithMessage("Depo adÄ± zorunludur.");
+            RuleFor(x => x.Name).NotEmpty().WithMessage("Depo adý zorunludur.");
             RuleFor(x => x.Address).NotEmpty();
             RuleFor(x => x.City).NotEmpty();
             RuleFor(x => x.District).NotEmpty();
 
-            // DÃ¼nya koordinat sÄ±nÄ±rlarÄ±
-            RuleFor(x => x.Latitude).InclusiveBetween(-90, 90).WithMessage("GeÃ§ersiz enlem deÄŸeri.");
-            RuleFor(x => x.Longitude).InclusiveBetween(-180, 180).WithMessage("GeÃ§ersiz boylam deÄŸeri.");
+            // Dünya koordinat sýnýrlarý
+            RuleFor(x => x.Latitude).InclusiveBetween(-90, 90).WithMessage("Geçersiz enlem deðeri.");
+            RuleFor(x => x.Longitude).InclusiveBetween(-180, 180).WithMessage("Geçersiz boylam deðeri.");
         }
     }
 }

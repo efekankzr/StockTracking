@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using StockTracking.Application.DTOs.Auth;
@@ -27,14 +27,14 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<TokenDto>> LoginAsync(LoginDto request)
         {
             var user = await _userManager.FindByNameAsync(request.Username);
-            if (user == null) return new ServiceResponse<TokenDto>("KullanÄ±cÄ± bulunamadÄ±.");
+            if (user == null) return ServiceResponse<TokenDto>.Fail("Kullanýcý bulunamadý.");
 
-            if (!user.IsActive) return new ServiceResponse<TokenDto>("Hesap pasif.");
+            if (!user.IsActive) return ServiceResponse<TokenDto>.Fail("Hesap pasif.");
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
             if (!result.Succeeded)
-                return new ServiceResponse<TokenDto>("Åžifre hatalÄ±.");
+                return ServiceResponse<TokenDto>.Fail("Þifre hatalý.");
 
             var tokenDto = await GenerateTokenDto(user);
             return new ServiceResponse<TokenDto>(tokenDto);

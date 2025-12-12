@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Application.DTOs.Sale
+namespace StockTracking.Application.DTOs.Sale
 {
     public class CreateSaleItemDto
     {

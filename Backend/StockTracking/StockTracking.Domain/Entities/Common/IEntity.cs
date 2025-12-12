@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Domain.Entities.Common
+namespace StockTracking.Domain.Entities.Common
 {
     public interface IEntity
     {

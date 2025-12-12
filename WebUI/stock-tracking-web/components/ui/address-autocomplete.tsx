@@ -24,7 +24,7 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
+
   const debouncedQuery = useDebounce(query, 500);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -50,33 +50,33 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
 
       setIsLoading(true);
       setErrorMsg(null);
-      
+
       try {
-        console.log("🔍 Adres aranıyor (Nominatim):", debouncedQuery);
-        
+
+
         // Nominatim API (Resmi OpenStreetMap Servisi)
         // countrycodes=tr -> Sadece Türkiye
         // addressdetails=1 -> İl/İlçe detaylarını getir
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(debouncedQuery)}&addressdetails=1&limit=5&countrycodes=tr`;
-        
+
         const res = await fetch(url, {
-            headers: {
-                // Nominatim, isteğin nereden geldiğini bilmek ister (Kibar kullanım kuralı)
-                'Accept-Language': 'tr',
-            }
+          headers: {
+            // Nominatim, isteğin nereden geldiğini bilmek ister (Kibar kullanım kuralı)
+            'Accept-Language': 'tr',
+          }
         });
-        
+
         if (!res.ok) throw new Error(`API Hatası: ${res.status}`);
-        
+
         const data = await res.json();
-        console.log("✅ Gelen Veri:", data);
+
 
         if (data && data.length > 0) {
-            setSuggestions(data);
-            setIsOpen(true);
+          setSuggestions(data);
+          setIsOpen(true);
         } else {
-            setSuggestions([]);
-            setIsOpen(false);
+          setSuggestions([]);
+          setIsOpen(false);
         }
 
       } catch (error) {
@@ -93,7 +93,7 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
 
   const handleSelect = (item: any) => {
     const addr = item.address;
-    
+
     // Adres parçalarını birleştir
     const displayLabel = item.display_name;
 
@@ -103,7 +103,7 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
     const district = addr.town || addr.district || addr.county || addr.suburb;
 
     const selectedData: AddressSuggestion = {
-      label: displayLabel, 
+      label: displayLabel,
       city: city,
       district: district,
       lat: parseFloat(item.lat),
@@ -118,28 +118,28 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
   return (
     <div className="relative w-full" ref={wrapperRef}>
       <div className="relative">
-        <Input 
-          placeholder="Adres aramaya başlayın... (Örn: Kadıköy)" 
+        <Input
+          placeholder="Adres aramaya başlayın... (Örn: Kadıköy)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => { if(suggestions.length > 0) setIsOpen(true); }}
+          onFocus={() => { if (suggestions.length > 0) setIsOpen(true); }}
           className="pr-10"
         />
         <div className="absolute right-3 top-2.5 text-slate-400">
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
         </div>
       </div>
 
       {errorMsg && (
         <div className="text-xs text-red-500 mt-1 flex items-center gap-1 px-1">
-            <AlertCircle className="w-3 h-3" /> {errorMsg}
+          <AlertCircle className="w-3 h-3" /> {errorMsg}
         </div>
       )}
 
       {isOpen && suggestions.length > 0 && (
         <ul className="absolute z-[9999] left-0 w-full bg-white border border-slate-200 rounded-md shadow-xl mt-1 max-h-60 overflow-auto ring-1 ring-black ring-opacity-5">
           {suggestions.map((item, index) => (
-            <li 
+            <li
               key={index}
               onClick={() => handleSelect(item)}
               className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-sm border-b last:border-b-0 transition-colors flex items-start gap-3"
@@ -148,7 +148,7 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
               <div>
                 <div className="font-medium text-slate-900">
                   {/* Kısa Adres (Örn: Migros) */}
-                  {item.name || item.address.road || "Adres Detayı"} 
+                  {item.name || item.address.road || "Adres Detayı"}
                 </div>
                 <div className="text-xs text-slate-500 mt-0.5 line-clamp-2">
                   {/* Uzun Açık Adres */}

@@ -1,4 +1,4 @@
-﻿using StockTracking.Domain.Entities.Common;
+using StockTracking.Domain.Entities.Common;
 using StockTracking.Domain.Enums;
 
 namespace StockTracking.Domain.Entities

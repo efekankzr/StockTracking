@@ -1,4 +1,4 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StockTracking.Application.DTOs.User;
@@ -44,7 +44,7 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<bool>> CreateUserAsync(CreateUserDto request)
         {
             var existing = await _userManager.FindByNameAsync(request.Username);
-            if (existing != null) return new ServiceResponse<bool>("KullanÄ±cÄ± zaten var.");
+            if (existing != null) return ServiceResponse<bool>.Fail("Kullanýcý zaten var.");
 
             var user = new User
             {
@@ -65,27 +65,27 @@ namespace StockTracking.Application.Services
 
             await _userManager.AddToRoleAsync(user, request.Role);
 
-            return new ServiceResponse<bool>(true, "Personel oluÅŸturuldu.");
+            return new ServiceResponse<bool>(true, "Personel oluþturuldu.");
         }
 
         public async Task<ServiceResponse<bool>> UpdateUserAsync(UpdateUserDto request)
         {
             var user = await _userManager.FindByIdAsync(request.Id);
-            if (user == null) return new ServiceResponse<bool>("KullanÄ±cÄ± bulunamadÄ±.");
+            if (user == null) return ServiceResponse<bool>.Fail("Kullanýcý bulunamadý.");
 
             user.FullName = request.FullName;
             user.Email = request.Email;
             user.PhoneNumber = request.PhoneNumber;
             user.WarehouseId = request.WarehouseId;
 
-            // EÄŸer e-posta deÄŸiÅŸtiyse username'i de gÃ¼ncellemek gerekebilir ancak ÅŸimdilik sabit bÄ±rakÄ±yoruz veya ayrÄ± ele alÄ±yoruz.
-            // Bu Ã¶rnekte UserName deÄŸiÅŸtirilmiyor. 
+            // Eðer e-posta deðiþtiyse username'i de güncellemek gerekebilir ancak þimdilik sabit býrakýyoruz veya ayrý ele alýyoruz.
+            // Bu örnekte UserName deðiþtirilmiyor. 
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
                 return new ServiceResponse<bool>(string.Join(", ", result.Errors.Select(e => e.Description)));
 
-            // Rol GÃ¼ncelleme
+            // Rol Güncelleme
             var currentRoles = await _userManager.GetRolesAsync(user);
             if (!currentRoles.Contains(request.Role))
             {
@@ -97,7 +97,7 @@ namespace StockTracking.Application.Services
                 await _userManager.AddToRoleAsync(user, request.Role);
             }
 
-            return new ServiceResponse<bool>(true, "Personel gÃ¼ncellendi.");
+            return new ServiceResponse<bool>(true, "Personel güncellendi.");
         }
     }
 }

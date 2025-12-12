@@ -1,4 +1,4 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using StockTracking.Application.DTOs.Expense;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
@@ -18,7 +18,7 @@ namespace StockTracking.Application.Services
             _mapper = mapper;
         }
 
-        // --- KATEGORÄ° Ä°ÅžLEMLERÄ° ---
+        // --- KATEGORÝ ÝÞLEMLERÝ ---
         public async Task<ServiceResponse<List<ExpenseCategoryDto>>> GetAllCategoriesAsync()
         {
             var list = await _unitOfWork.ExpenseCategories.GetAllAsync(); // Repo'ya eklenmeli
@@ -30,48 +30,48 @@ namespace StockTracking.Application.Services
             var category = _mapper.Map<ExpenseCategory>(request);
             await _unitOfWork.ExpenseCategories.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<ExpenseCategoryDto>(_mapper.Map<ExpenseCategoryDto>(category), "Gider tÃ¼rÃ¼ oluÅŸturuldu.");
+            return new ServiceResponse<ExpenseCategoryDto>(_mapper.Map<ExpenseCategoryDto>(category), "Gider türü oluþturuldu.");
         }
 
         public async Task<ServiceResponse<bool>> DeleteCategoryAsync(int id)
         {
             var category = await _unitOfWork.ExpenseCategories.GetByIdAsync(id);
-            if (category == null) return new ServiceResponse<bool>("Kategori bulunamadÄ±.");
+            if (category == null) return ServiceResponse<bool>.Fail("Kategori bulunamadý.");
 
-            if (category.IsSystemDefault) return new ServiceResponse<bool>("Sistem varsayÄ±lanÄ± silinemez.");
+            if (category.IsSystemDefault) return ServiceResponse<bool>.Fail("Sistem varsayýlaný silinemez.");
 
             _unitOfWork.ExpenseCategories.Delete(category); // Soft Delete
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Gider tÃ¼rÃ¼ silindi.");
+            return new ServiceResponse<bool>(true, "Gider türü silindi.");
         }
 
-        // --- FÄ°Åž Ä°ÅžLEMLERÄ° (GÄ°DER GÄ°RÄ°ÅžÄ°) ---
+        // --- FÝÞ ÝÞLEMLERÝ (GÝDER GÝRÝÞÝ) ---
         public async Task<ServiceResponse<List<ExpenseTransactionDto>>> GetAllTransactionsAsync()
         {
-            // DetaylÄ± getirmesi iÃ§in Repo'ya GetAllWithDetailsAsync eklenmeli
-            // Åžimdilik dÃ¼z Ã§ekip mapliyoruz
+            // Detaylý getirmesi için Repo'ya GetAllWithDetailsAsync eklenmeli
+            // Þimdilik düz çekip mapliyoruz
             var list = await _unitOfWork.ExpenseTransactions.GetAllAsync();
-            // Not: Include iÅŸlemleri Repo'da yapÄ±lmalÄ± (User, Warehouse, Category)
+            // Not: Include iþlemleri Repo'da yapýlmalý (User, Warehouse, Category)
             return new ServiceResponse<List<ExpenseTransactionDto>>(_mapper.Map<List<ExpenseTransactionDto>>(list));
         }
 
         public async Task<ServiceResponse<bool>> CreateTransactionAsync(CreateExpenseTransactionDto request, int userId)
         {
             var category = await _unitOfWork.ExpenseCategories.GetByIdAsync(request.ExpenseCategoryId);
-            if (category == null) return new ServiceResponse<bool>("Gider tÃ¼rÃ¼ bulunamadÄ±.");
+            if (category == null) return ServiceResponse<bool>.Fail("Gider türü bulunamadý.");
 
-            // 1. ORANLARI BELÄ°RLE (KullanÄ±cÄ± girdiyse o, girmediyse kategorinin varsayÄ±lanÄ±)
+            // 1. ORANLARI BELÝRLE (Kullanýcý girdiyse o, girmediyse kategorinin varsayýlaný)
             int vatRate = request.VatRate ?? category.DefaultVatRate;
             int withholdingRate = request.WithholdingRate ?? (category.HasWithholding ? category.DefaultWithholdingRate : 0);
 
             decimal baseAmount = 0; // Matrah
-            decimal vatAmount = 0; // KDV TutarÄ±
-            decimal totalAmount = 0; // Fatura ToplamÄ±
+            decimal vatAmount = 0; // KDV Tutarý
+            decimal totalAmount = 0; // Fatura Toplamý
 
             // 2. HESAPLAMA MOTORU
             if (request.IsVatIncluded)
             {
-                // KDV Dahil Girildiyse (Ã–rn: 118 TL, %18 KDV)
+                // KDV Dahil Girildiyse (Örn: 118 TL, %18 KDV)
                 // Matrah = Tutar / (1 + KDV/100) -> 118 / 1.18 = 100
                 baseAmount = request.Amount / (1 + ((decimal)vatRate / 100));
                 vatAmount = request.Amount - baseAmount;
@@ -79,13 +79,13 @@ namespace StockTracking.Application.Services
             }
             else
             {
-                // KDV HariÃ§ Girildiyse (Ã–rn: 100 TL + KDV)
+                // KDV Hariç Girildiyse (Örn: 100 TL + KDV)
                 baseAmount = request.Amount;
                 vatAmount = baseAmount * ((decimal)vatRate / 100);
                 totalAmount = baseAmount + vatAmount;
             }
 
-            // Stopaj HesabÄ± (Genelde Matrah Ã¼zerinden hesaplanÄ±r)
+            // Stopaj Hesabý (Genelde Matrah üzerinden hesaplanýr)
             decimal withholdingAmount = baseAmount * ((decimal)withholdingRate / 100);
 
             // 3. KAYIT
@@ -117,11 +117,11 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<bool>> DeleteTransactionAsync(int id)
         {
             var trans = await _unitOfWork.ExpenseTransactions.GetByIdAsync(id);
-            if (trans == null) return new ServiceResponse<bool>("KayÄ±t bulunamadÄ±.");
+            if (trans == null) return ServiceResponse<bool>.Fail("Kayýt bulunamadý.");
 
             _unitOfWork.ExpenseTransactions.Delete(trans); // Soft Delete yoksa Hard Delete yapar
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Gider kaydÄ± silindi.");
+            return new ServiceResponse<bool>(true, "Gider kaydý silindi.");
         }
 
         public async Task<ServiceResponse<List<ExpenseReportDto>>> GetDetailedReportAsync(DateTime startDate, DateTime endDate)

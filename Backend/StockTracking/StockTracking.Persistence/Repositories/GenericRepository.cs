@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Domain.Entities.Common;
 using StockTracking.Persistence.Context;

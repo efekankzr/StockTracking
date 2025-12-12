@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using StockTracking.Domain.Entities.Common;
 
 namespace StockTracking.Domain.Entities

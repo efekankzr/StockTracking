@@ -1,4 +1,4 @@
-ï»¿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using StockTracking.Domain.Entities;
 
@@ -11,7 +11,7 @@ namespace StockTracking.Persistence.Configurations
             builder.ToTable("StockLogs");
             builder.HasKey(l => l.Id);
 
-            // Ä°liÅŸkiler
+            // Ýliþkiler
             builder.HasOne(l => l.Product)
                    .WithMany(p => p.StockLogs)
                    .HasForeignKey(l => l.ProductId)

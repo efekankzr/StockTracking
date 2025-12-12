@@ -1,4 +1,4 @@
-﻿using StockTracking.Domain.Entities;
+using StockTracking.Domain.Entities;
 
 namespace StockTracking.Application.Interfaces.Repositories
 {

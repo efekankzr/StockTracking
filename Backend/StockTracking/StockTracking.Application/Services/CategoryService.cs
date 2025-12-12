@@ -1,4 +1,4 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using StockTracking.Application.DTOs.Category;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
@@ -27,7 +27,7 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<CategoryDto>> GetByIdAsync(int id)
         {
             var category = await _unitOfWork.Categories.GetByIdAsync(id);
-            if (category == null) return new ServiceResponse<CategoryDto>("Kategori bulunamadÄ±.");
+            if (category == null) return ServiceResponse<CategoryDto>.Fail("Kategori bulunamadý.");
             return new ServiceResponse<CategoryDto>(_mapper.Map<CategoryDto>(category));
         }
 
@@ -42,31 +42,31 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<bool>> UpdateAsync(UpdateCategoryDto request)
         {
             var category = await _unitOfWork.Categories.GetByIdAsync(request.Id);
-            if (category == null) return new ServiceResponse<bool>("Kategori bulunamadÄ±.");
+            if (category == null) return ServiceResponse<bool>.Fail("Kategori bulunamadý.");
 
             _mapper.Map(request, category);
             _unitOfWork.Categories.Update(category);
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Kategori gÃ¼ncellendi.");
+            return new ServiceResponse<bool>(true, "Kategori güncellendi.");
         }
 
         public async Task<ServiceResponse<bool>> DeleteAsync(int id)
         {
             var category = await _unitOfWork.Categories.GetByIdAsync(id);
-            if (category == null) return new ServiceResponse<bool>("Kategori bulunamadÄ±.");
+            if (category == null) return ServiceResponse<bool>.Fail("Kategori bulunamadý.");
 
             var hasProducts = await _unitOfWork.Products.GetSingleAsync(p => p.CategoryId == id && !p.IsDeleted);
-            if (hasProducts != null) return new ServiceResponse<bool>("Bu kategoriye baÄŸlÄ± Ã¼rÃ¼nler var. Silinemez.");
+            if (hasProducts != null) return ServiceResponse<bool>.Fail("Bu kategoriye baðlý ürünler var. Silinemez.");
 
             await _unitOfWork.Categories.ArchiveAsync(id);
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Kategori pasife alÄ±ndÄ±.");
+            return new ServiceResponse<bool>(true, "Kategori pasife alýndý.");
         }
 
         public async Task<ServiceResponse<bool>> ActivateAsync(int id)
         {
             var category = await _unitOfWork.Categories.GetByIdAsync(id);
-            if (category == null) return new ServiceResponse<bool>("Kategori bulunamadÄ±.");
+            if (category == null) return ServiceResponse<bool>.Fail("Kategori bulunamadý.");
 
             await _unitOfWork.Categories.RestoreAsync(id);
             await _unitOfWork.SaveChangesAsync();
@@ -76,10 +76,10 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<bool>> HardDeleteAsync(int id)
         {
             var category = await _unitOfWork.Categories.GetByIdAsync(id);
-            if (category == null) return new ServiceResponse<bool>("Kategori bulunamadÄ±.");
+            if (category == null) return ServiceResponse<bool>.Fail("Kategori bulunamadý.");
 
             var hasProducts = await _unitOfWork.Products.GetSingleAsync(p => p.CategoryId == id && !p.IsDeleted);
-            if (hasProducts != null) return new ServiceResponse<bool>("BaÄŸlÄ± Ã¼rÃ¼nler var.");
+            if (hasProducts != null) return ServiceResponse<bool>.Fail("Baðlý ürünler var.");
 
             _unitOfWork.Categories.Delete(category);
             await _unitOfWork.SaveChangesAsync();

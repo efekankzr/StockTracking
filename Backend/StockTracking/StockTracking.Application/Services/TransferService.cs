@@ -1,4 +1,4 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using StockTracking.Application.DTOs.Transfer;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
@@ -38,7 +38,7 @@ namespace StockTracking.Application.Services
             var sourceStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == request.ProductId && s.WarehouseId == request.SourceWarehouseId);
 
             if (sourceStock == null || sourceStock.Quantity < request.Quantity)
-                return new ServiceResponse<bool>("Kaynak depoda yeterli stok yok.");
+                return ServiceResponse<bool>.Fail("Kaynak depoda yeterli stok yok.");
 
             var transfer = new StockTransfer
             {
@@ -68,15 +68,15 @@ namespace StockTracking.Application.Services
             await _unitOfWork.StockTransfers.AddAsync(transfer);
             await _unitOfWork.SaveChangesAsync();
 
-            return new ServiceResponse<bool>(true, "Transfer baÅŸlatÄ±ldÄ±, Ã¼rÃ¼n yola Ã§Ä±ktÄ±.");
+            return new ServiceResponse<bool>(true, "Transfer baþlatýldý, ürün yola çýktý.");
         }
 
         public async Task<ServiceResponse<bool>> ApproveTransferAsync(int transferId, int userId)
         {
             var transfer = await _unitOfWork.StockTransfers.GetByIdAsync(transferId);
 
-            if (transfer == null) return new ServiceResponse<bool>("Transfer bulunamadÄ±.");
-            if (transfer.Status != TransferStatus.Pending) return new ServiceResponse<bool>("Bu transfer zaten tamamlanmÄ±ÅŸ veya iptal edilmiÅŸ.");
+            if (transfer == null) return ServiceResponse<bool>.Fail("Transfer bulunamadý.");
+            if (transfer.Status != TransferStatus.Pending) return ServiceResponse<bool>.Fail("Bu transfer zaten tamamlanmýþ veya iptal edilmiþ.");
 
             var targetStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == transfer.ProductId && s.WarehouseId == transfer.TargetWarehouseId);
 
@@ -128,15 +128,15 @@ namespace StockTracking.Application.Services
             });
 
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Transfer onaylandÄ±, stok hedef depoya eklendi.");
+            return new ServiceResponse<bool>(true, "Transfer onaylandý, stok hedef depoya eklendi.");
         }
 
         public async Task<ServiceResponse<bool>> CancelTransferAsync(int transferId, int userId)
         {
             var transfer = await _unitOfWork.StockTransfers.GetByIdAsync(transferId);
 
-            if (transfer == null) return new ServiceResponse<bool>("Transfer bulunamadÄ±.");
-            if (transfer.Status != TransferStatus.Pending) return new ServiceResponse<bool>("Sadece beklemedeki transferler iptal edilebilir.");
+            if (transfer == null) return ServiceResponse<bool>.Fail("Transfer bulunamadý.");
+            if (transfer.Status != TransferStatus.Pending) return ServiceResponse<bool>.Fail("Sadece beklemedeki transferler iptal edilebilir.");
 
             var sourceStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == transfer.ProductId && s.WarehouseId == transfer.SourceWarehouseId);
 
@@ -160,7 +160,7 @@ namespace StockTracking.Application.Services
             });
 
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Transfer iptal edildi, stok kaynaÄŸa iade edildi.");
+            return new ServiceResponse<bool>(true, "Transfer iptal edildi, stok kaynaða iade edildi.");
         }
     }
 }

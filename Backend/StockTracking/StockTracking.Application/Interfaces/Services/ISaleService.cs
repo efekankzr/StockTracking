@@ -1,4 +1,4 @@
-﻿using StockTracking.Application.DTOs.Report;
+using StockTracking.Application.DTOs.Report;
 using StockTracking.Application.DTOs.Sale;
 using StockTracking.Application.Wrappers;
 

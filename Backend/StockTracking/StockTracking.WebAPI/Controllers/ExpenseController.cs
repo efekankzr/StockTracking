@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockTracking.Application.DTOs.Expense;
 using StockTracking.Application.Interfaces.Services;
@@ -20,10 +20,10 @@ namespace StockTracking.WebAPI.Controllers
             _service = service;
         }
 
-        // --- KATEGORİ YÖNETİMİ (SADECE ADMIN) ---
+
 
         [HttpGet("category")]
-        [Authorize(Roles = "Admin,DepoSorumlusu")] // Giriş yaparken seçmek için Depocu da görmeli
+        [Authorize(Roles = "Admin,DepoSorumlusu")] // Giri� yaparken se�mek i�in Depocu da g�rmeli
         public async Task<IActionResult> GetAllCategories()
         {
             var response = await _service.GetAllCategoriesAsync();
@@ -48,14 +48,13 @@ namespace StockTracking.WebAPI.Controllers
             return Ok(response);
         }
 
-        // --- GİDER FİŞİ İŞLEMLERİ ---
+
 
         [HttpGet("transaction")]
         [Authorize(Roles = "Admin,DepoSorumlusu")]
         public async Task<IActionResult> GetAllTransactions()
         {
-            // İpucu: Burada kullanıcının rolüne göre filtreleme yapılabilir.
-            // Şimdilik tüm listeyi dönüyoruz.
+
             var response = await _service.GetAllTransactionsAsync();
             return Ok(response);
         }
@@ -64,18 +63,18 @@ namespace StockTracking.WebAPI.Controllers
         [Authorize(Roles = "Admin,DepoSorumlusu")]
         public async Task<IActionResult> CreateTransaction(CreateExpenseTransactionDto request)
         {
-            // İşlemi yapan kişiyi Token'dan alıyoruz
+
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
             int userId = int.Parse(userIdString);
 
-            // Depo Sorumlusu Kontrolü: Sadece kendi deposuna gider girebilir
+
             if (User.IsInRole("DepoSorumlusu"))
             {
                 var userWarehouseId = User.FindFirst("WarehouseId")?.Value;
                 if (userWarehouseId != null && int.Parse(userWarehouseId) != request.WarehouseId)
                 {
-                    return BadRequest("Sadece sorumlu olduğunuz depoya gider girişi yapabilirsiniz.");
+                    return BadRequest("Sadece sorumlu oldu�unuz depoya gider giri�i yapabilirsiniz.");
                 }
             }
 
@@ -85,7 +84,7 @@ namespace StockTracking.WebAPI.Controllers
         }
 
         [HttpDelete("transaction/{id}")]
-        [Authorize(Roles = "Admin")] // Gider silmek kritik iştir, sadece Admin yapsın
+        [Authorize(Roles = "Admin")] // Gider silmek kritik i�tir, sadece Admin yaps�n
         public async Task<IActionResult> DeleteTransaction(int id)
         {
             var response = await _service.DeleteTransactionAsync(id);

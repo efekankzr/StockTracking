@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Application.DTOs.Category
+namespace StockTracking.Application.DTOs.Category
 {
     public class UpdateCategoryDto : CreateCategoryDto
     {

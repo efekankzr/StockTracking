@@ -1,4 +1,4 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StockTracking.Application.DTOs.Role;
@@ -28,7 +28,7 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<bool>> CreateAsync(CreateRoleDto request)
         {
             if (await _roleManager.RoleExistsAsync(request.Name))
-                return new ServiceResponse<bool>("Bu rol zaten mevcut.");
+                return ServiceResponse<bool>.Fail("Bu rol zaten mevcut.");
 
             var role = new IdentityRole<int>
             {
@@ -44,22 +44,22 @@ namespace StockTracking.Application.Services
                 return new ServiceResponse<bool>(errors);
             }
 
-            return new ServiceResponse<bool>(true, "Rol baÅŸarÄ±yla oluÅŸturuldu.");
+            return new ServiceResponse<bool>(true, "Rol baþarýyla oluþturuldu.");
         }
 
         public async Task<ServiceResponse<bool>> DeleteAsync(int id)
         {
             var role = await _roleManager.FindByIdAsync(id.ToString());
             if (role == null)
-                return new ServiceResponse<bool>("Rol bulunamadÄ±.");
+                return ServiceResponse<bool>.Fail("Rol bulunamadý.");
 
             if (role.Name == "Admin")
-                return new ServiceResponse<bool>("Admin rolÃ¼ silinemez.");
+                return ServiceResponse<bool>.Fail("Admin rolü silinemez.");
 
             var result = await _roleManager.DeleteAsync(role);
 
             if (!result.Succeeded)
-                return new ServiceResponse<bool>("Silme iÅŸlemi baÅŸarÄ±sÄ±z.");
+                return ServiceResponse<bool>.Fail("Silme iþlemi baþarýsýz.");
 
             return new ServiceResponse<bool>(true, "Rol silindi.");
         }

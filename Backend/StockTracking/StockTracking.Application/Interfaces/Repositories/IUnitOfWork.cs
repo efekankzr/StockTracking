@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Application.Interfaces.Repositories
+namespace StockTracking.Application.Interfaces.Repositories
 {
     public interface IUnitOfWork : IAsyncDisposable
     {

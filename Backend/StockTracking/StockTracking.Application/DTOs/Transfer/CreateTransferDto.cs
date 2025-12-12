@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Application.DTOs.Transfer
+namespace StockTracking.Application.DTOs.Transfer
 {
     public class CreateTransferDto
     {

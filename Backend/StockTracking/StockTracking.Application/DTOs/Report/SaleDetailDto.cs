@@ -1,10 +1,10 @@
-﻿namespace StockTracking.Application.DTOs.Report
+namespace StockTracking.Application.DTOs.Report
 {
     public class SaleDetailDto
     {
         public int SaleId { get; set; }
-        public string ProductName { get; set; }
-        public string Barcode { get; set; }
+        public string? ProductName { get; set; }
+        public string? Barcode { get; set; }
         public int Quantity { get; set; }
         public DateTime Time { get; set; }
 

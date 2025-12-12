@@ -1,4 +1,4 @@
-﻿namespace StockTracking.Application.DTOs.Report
+namespace StockTracking.Application.DTOs.Report
 {
     public class DashboardSummaryDto
     {

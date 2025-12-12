@@ -1,4 +1,4 @@
-ï»¿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StockTracking.Application.DTOs.Report;
@@ -50,17 +50,17 @@ namespace StockTracking.Application.Services
             foreach (var itemDto in request.Items)
             {
                 var product = await _unitOfWork.Products.GetByIdAsync(itemDto.ProductId);
-                if (product == null) return new ServiceResponse<SaleDto>($"ÃœrÃ¼n bulunamadÄ± (ID: {itemDto.ProductId})");
+                if (product == null) return new ServiceResponse<SaleDto>($"Ürün bulunamadý (ID: {itemDto.ProductId})");
 
                 var stock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == itemDto.ProductId && s.WarehouseId == request.WarehouseId);
                 if (stock == null || stock.Quantity < itemDto.Quantity)
-                    return new ServiceResponse<SaleDto>($"{product.Name} iÃ§in yetersiz stok!");
+                    return new ServiceResponse<SaleDto>($"{product.Name} için yetersiz stok!");
 
                 decimal priceWithVat = itemDto.PriceWithVat ?? product.SalePrice;
                 decimal vatRate = itemDto.VatRate ?? product.TaxRateSelling;
 
                 if (request.PaymentMethod == PaymentMethod.KrediKarti && vatRate == 0)
-                    return new ServiceResponse<SaleDto>("Kredi kartÄ± ile satÄ±ÅŸta KDV 0 olamaz!");
+                    return ServiceResponse<SaleDto>.Fail("Kredi kartý ile satýþta KDV 0 olamaz!");
 
                 decimal netPrice = priceWithVat / (1 + (vatRate / 100));
                 decimal vatPerUnit = priceWithVat - netPrice;
@@ -100,7 +100,7 @@ namespace StockTracking.Application.Services
             await _unitOfWork.SaveChangesAsync();
 
             var responseDto = _mapper.Map<SaleDto>(sale);
-            return new ServiceResponse<SaleDto>(responseDto, $"SatÄ±ÅŸ baÅŸarÄ±lÄ±. Toplam: {sale.TotalAmount:C2}");
+            return new ServiceResponse<SaleDto>(responseDto, $"Satýþ baþarýlý. Toplam: {sale.TotalAmount:C2}");
         }
 
         public async Task<ServiceResponse<List<UserSalesReportDto>>> GetDailyReportAsync(DateTime date)

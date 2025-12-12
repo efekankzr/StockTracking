@@ -1,4 +1,4 @@
-﻿using StockTracking.Application.Interfaces.Repositories;
+using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Persistence.Context;
 
 namespace StockTracking.Persistence.Repositories

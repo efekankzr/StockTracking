@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockTracking.Application.DTOs.Sale;
 using StockTracking.Application.Interfaces.Services;
@@ -34,7 +34,7 @@ namespace StockTracking.WebAPI.Controllers
         public async Task<IActionResult> Create(CreateSaleDto request)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdString)) return Unauthorized(new ServiceResponse<bool>("Kimlik doÄŸrulanamadÄ±."));
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized(ServiceResponse<bool>.Fail("Kimlik doðrulanamadý."));
 
             int userId = int.Parse(userIdString);
 

@@ -1,4 +1,4 @@
-ï»¿using FluentValidation;
+using FluentValidation;
 using StockTracking.Application.DTOs.Product;
 
 namespace StockTracking.Application.Validations.Product
@@ -7,12 +7,12 @@ namespace StockTracking.Application.Validations.Product
     {
         public UpdateProductValidator()
         {
-            RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("Kategori seÃ§ilmelidir.");
+            RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("Kategori seçilmelidir.");
             RuleFor(x => x.Name).NotEmpty().MinimumLength(2);
             RuleFor(x => x.Barcode).NotEmpty();
 
             RuleFor(x => x.SalePrice)
-                .GreaterThan(0).WithMessage("SatÄ±ÅŸ fiyatÄ± 0'dan bÃ¼yÃ¼k olmalÄ±dÄ±r.");
+                .GreaterThan(0).WithMessage("Satýþ fiyatý 0'dan büyük olmalýdýr.");
 
             RuleFor(x => x.TaxRateSelling).InclusiveBetween(0, 100);
         }

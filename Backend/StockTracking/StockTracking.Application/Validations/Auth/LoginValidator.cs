@@ -1,4 +1,4 @@
-ï»¿using FluentValidation;
+using FluentValidation;
 using StockTracking.Application.DTOs.Auth;
 
 namespace StockTracking.Application.Validations.Auth
@@ -7,8 +7,8 @@ namespace StockTracking.Application.Validations.Auth
     {
         public LoginValidator()
         {
-            RuleFor(x => x.Username).NotEmpty().WithMessage("KullanÄ±cÄ± adÄ± giriniz.");
-            RuleFor(x => x.Password).NotEmpty().WithMessage("Åžifre giriniz.");
+            RuleFor(x => x.Username).NotEmpty().WithMessage("Kullanýcý adý giriniz.");
+            RuleFor(x => x.Password).NotEmpty().WithMessage("Þifre giriniz.");
         }
     }
 }

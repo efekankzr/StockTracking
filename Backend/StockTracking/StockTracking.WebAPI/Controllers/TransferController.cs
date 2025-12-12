@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StockTracking.Application.DTOs.Transfer;
 using StockTracking.Application.Interfaces.Services;
@@ -33,7 +33,7 @@ namespace StockTracking.WebAPI.Controllers
             var warehouseIdClaim = User.FindFirst("WarehouseId")?.Value;
             if (string.IsNullOrEmpty(warehouseIdClaim))
             {
-                return BadRequest(new ServiceResponse<object>("KullanÄ±cÄ±nÄ±n deposu bulunamadÄ±."));
+                return BadRequest(ServiceResponse<object>.Fail("Kullanýcýnýn deposu bulunamadý."));
             }
 
             var responseDepo = await _service.GetByWarehouseIdAsync(int.Parse(warehouseIdClaim));
@@ -54,7 +54,7 @@ namespace StockTracking.WebAPI.Controllers
                 var userWarehouseId = User.FindFirst("WarehouseId")?.Value;
                 if (userWarehouseId != null && int.Parse(userWarehouseId) != request.SourceWarehouseId)
                 {
-                    return BadRequest(new ServiceResponse<bool>("Sadece sorumlu olduÄŸunuz depodan transfer baÅŸlatabilirsiniz."));
+                    return BadRequest(ServiceResponse<bool>.Fail("Sadece sorumlu olduðunuz depodan transfer baþlatabilirsiniz."));
                 }
             }
 

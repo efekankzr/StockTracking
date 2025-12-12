@@ -1,4 +1,4 @@
-ï»¿using StockTracking.Domain.Entities.Common;
+using StockTracking.Domain.Entities.Common;
 using StockTracking.Domain.Enums;
 
 namespace StockTracking.Domain.Entities
@@ -20,7 +20,7 @@ namespace StockTracking.Domain.Entities
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 
-        // --- KÄ°RA BÄ°LGÄ°LERÄ° ---
+        // --- KÝRA BÝLGÝLERÝ ---
         public RentType RentType { get; set; }
         public decimal OfficialRentAmount { get; set; }
         public decimal UnofficialRentAmount { get; set; }
