@@ -12,7 +12,7 @@ using StockTracking.Persistence.Context;
 namespace StockTracking.Persistence.Migrations
 {
     [DbContext(typeof(StockTrackingDbContext))]
-    [Migration("20251214130656_InitialCreate")]
+    [Migration("20251214212519_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -246,10 +246,18 @@ namespace StockTracking.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
 
                     b.ToTable("ExpenseCategories", (string)null);
                 });

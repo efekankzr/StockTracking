@@ -52,6 +52,7 @@ namespace StockTracking.Persistence.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    NormalizedName = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     IsTaxDeductible = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     DefaultVatRate = table.Column<int>(type: "integer", nullable: false, defaultValue: 20),
@@ -550,6 +551,12 @@ namespace StockTracking.Persistence.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_NormalizedName",
                 table: "Categories",
+                column: "NormalizedName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExpenseCategories_NormalizedName",
+                table: "ExpenseCategories",
                 column: "NormalizedName",
                 unique: true);
 

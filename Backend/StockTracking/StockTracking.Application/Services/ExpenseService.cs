@@ -1,4 +1,5 @@
-using AutoMapper;
+﻿using AutoMapper;
+using StockTracking.Application.Extensions;
 using StockTracking.Application.DTOs.Expense;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
@@ -27,7 +28,13 @@ namespace StockTracking.Application.Services
 
         public async Task<ServiceResponse<ExpenseCategoryDto>> CreateCategoryAsync(CreateExpenseCategoryDto request)
         {
+            var normalizedName = (request.Name ?? string.Empty).ToNormalizedString();
+            var existing = await _unitOfWork.ExpenseCategories.GetSingleAsync(c => c.NormalizedName == normalizedName && !c.IsDeleted);
+            if (existing != null) return ServiceResponse<ExpenseCategoryDto>.Fail("Bu isimde bir gider türü zaten mevcut.");
+
             var category = _mapper.Map<ExpenseCategory>(request);
+            category.NormalizedName = normalizedName;
+
             await _unitOfWork.ExpenseCategories.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
             return ServiceResponse<ExpenseCategoryDto>.SuccessResult(_mapper.Map<ExpenseCategoryDto>(category), "Gider türü oluşturuldu.");
@@ -36,13 +43,13 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<bool>> DeleteCategoryAsync(int id)
         {
             var category = await _unitOfWork.ExpenseCategories.GetByIdAsync(id);
-            if (category == null) return ServiceResponse<bool>.Fail("Kategori bulunamadı.");
+            if (category == null) return ServiceResponse<bool>.Fail("Kategori bulunamadÄ±.");
             
-            if (category.IsSystemDefault) return ServiceResponse<bool>.Fail("Sistem varsayılanı silinemez.");
+            if (category.IsSystemDefault) return ServiceResponse<bool>.Fail("Sistem varsayÄ±lanÄ± silinemez.");
 
             _unitOfWork.ExpenseCategories.Delete(category);
             await _unitOfWork.SaveChangesAsync();
-            return ServiceResponse<bool>.SuccessResult(true, "Gider türü silindi.");
+            return ServiceResponse<bool>.SuccessResult(true, "Gider tÃ¼rÃ¼ silindi.");
         }
 
         public async Task<ServiceResponse<List<ExpenseTransactionDto>>> GetAllTransactionsAsync()
@@ -55,7 +62,7 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<bool>> CreateTransactionAsync(CreateExpenseTransactionDto request, int userId)
         {
             var category = await _unitOfWork.ExpenseCategories.GetByIdAsync(request.ExpenseCategoryId);
-            if (category == null) return ServiceResponse<bool>.Fail("Gider türü bulunamadı.");
+            if (category == null) return ServiceResponse<bool>.Fail("Gider tÃ¼rÃ¼ bulunamadÄ±.");
 
             // HESAPLAMA (Fixing decimal -> int conversion error)
             decimal baseAmount = 0; // Matrah
@@ -68,25 +75,25 @@ namespace StockTracking.Application.Services
 
             if (request.IsVatIncluded)
             {
-                // KDV Dahilse: Önce KDV'yi içinden ayır
-                // Formül: Tutar / (1 + KDV Oranı) = Matrah
+                // KDV Dahilse: Ã–nce KDV'yi iÃ§inden ayÄ±r
+                // FormÃ¼l: Tutar / (1 + KDV OranÄ±) = Matrah
                 baseAmount = totalAmount / (1 + (vatRate / 100));
                 vatAmount = totalAmount - baseAmount;
             }
             else
             {
-                // KDV Hariçse: Matrah = Tutar
+                // KDV HariÃ§se: Matrah = Tutar
                 baseAmount = totalAmount;
                 vatAmount = baseAmount * (vatRate / 100);
             }
 
-            // Stopaj Hesaplama (Genelde brüt üzerinden veya matrah üzerinden hesaplanır, burada matrah kabul edelim)
+            // Stopaj Hesaplama (Genelde brÃ¼t Ã¼zerinden veya matrah Ã¼zerinden hesaplanÄ±r, burada matrah kabul edelim)
             if (withholdingRate > 0)
             {
                 withholdingAmount = baseAmount * (withholdingRate / 100);
             }
 
-            // Entity oluşturma
+            // Entity oluÅŸturma
             var transaction = _mapper.Map<ExpenseTransaction>(request);
             transaction.UserId = userId;
             transaction.Amount = baseAmount; 
@@ -102,11 +109,11 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<bool>> DeleteTransactionAsync(int id)
         {
             var trans = await _unitOfWork.ExpenseTransactions.GetByIdAsync(id);
-            if (trans == null) return ServiceResponse<bool>.Fail("Kayıt bulunamadı.");
+            if (trans == null) return ServiceResponse<bool>.Fail("KayÄ±t bulunamadÄ±.");
 
             _unitOfWork.ExpenseTransactions.Delete(trans);
             await _unitOfWork.SaveChangesAsync();
-            return ServiceResponse<bool>.SuccessResult(true, "Gider kaydı silindi.");
+            return ServiceResponse<bool>.SuccessResult(true, "Gider kaydÄ± silindi.");
         }
 
         public async Task<ServiceResponse<List<ExpenseReportDto>>> GetDetailedReportAsync(DateTime startDate, DateTime endDate)

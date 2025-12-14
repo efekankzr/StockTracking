@@ -5,6 +5,7 @@ namespace StockTracking.Domain.Entities
     public class ExpenseCategory : BaseEntity, ISoftDelete
     {
         public string Name { get; set; }
+        public string NormalizedName { get; set; }
         public string? Description { get; set; }
 
         public bool IsTaxDeductible { get; set; } = true;
