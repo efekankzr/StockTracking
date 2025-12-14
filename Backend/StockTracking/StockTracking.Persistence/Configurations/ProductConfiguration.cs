@@ -12,6 +12,9 @@ namespace StockTracking.Persistence.Configurations
             builder.HasKey(p => p.Id);
 
             builder.Property(p => p.Name).IsRequired().HasMaxLength(200);
+            builder.Property(p => p.NormalizedName).IsRequired().HasMaxLength(200);
+            builder.HasIndex(p => p.NormalizedName).IsUnique();
+
             builder.Property(p => p.Barcode).IsRequired().HasMaxLength(50);
             builder.HasIndex(p => p.Barcode).IsUnique();
 

@@ -13,7 +13,6 @@ import { useEffect } from 'react';
 // Validasyon Şeması
 const formSchema = z.object({
   name: z.string().min(1, 'Kategori adı zorunludur.').max(100, 'Çok uzun.'),
-  description: z.string().max(500, 'Açıklama çok uzun.').optional(),
 });
 
 type CategoryFormValues = z.infer<typeof formSchema>;
@@ -33,7 +32,6 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      description: '',
     },
   });
 
@@ -42,12 +40,10 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
     if (initialData) {
       form.reset({
         name: initialData.name,
-        description: initialData.description,
       });
     } else {
       form.reset({
         name: '',
-        description: '',
       });
     }
   }, [initialData, form]);
@@ -69,20 +65,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Açıklama</FormLabel>
-              <FormControl>
-                {/* Textarea bileşeni yoksa Input kullanabilirsin */}
-                <Input placeholder="Kategori açıklaması..." {...field} /> 
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+
 
         <div className="flex justify-end pt-4">
           <Button type="submit" disabled={isLoading}>

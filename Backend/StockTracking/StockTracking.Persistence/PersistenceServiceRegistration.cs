@@ -19,7 +19,6 @@ namespace StockTracking.Persistence
                     b => b.MigrationsAssembly("StockTracking.Persistence")
                 ));
 
-            // Identity Configuration
             services.AddIdentity<User, IdentityRole<int>>(options => 
             {
                 options.User.RequireUniqueEmail = true;
@@ -32,7 +31,6 @@ namespace StockTracking.Persistence
             .AddEntityFrameworkStores<StockTrackingDbContext>()
             .AddDefaultTokenProviders();
 
-            // Repositories
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -46,6 +44,8 @@ namespace StockTracking.Persistence
             services.AddScoped<ITransferRepository, TransferRepository>();
             services.AddScoped<IExpenseCategoryRepository, ExpenseCategoryRepository>();
             services.AddScoped<IExpenseTransactionRepository, ExpenseTransactionRepository>();
+            
+
         }
     }
 }

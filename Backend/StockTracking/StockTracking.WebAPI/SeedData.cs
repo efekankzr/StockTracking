@@ -40,6 +40,7 @@ namespace StockTracking.WebAPI
                     await userManager.AddToRoleAsync(admin, "Admin");
                 }
             }
+
         }
     }
 }

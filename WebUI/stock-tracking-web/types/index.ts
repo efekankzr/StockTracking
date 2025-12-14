@@ -64,13 +64,12 @@ export interface TokenResponse {
 export interface CategoryDto {
   id: number;
   name: string;
-  description: string;
+  normalizedName?: string;
   isActive: boolean;
 }
 
 export interface CreateCategoryRequest {
   name: string;
-  description: string;
 }
 
 export interface UpdateCategoryRequest extends CreateCategoryRequest {
@@ -81,6 +80,7 @@ export interface UpdateCategoryRequest extends CreateCategoryRequest {
 export interface WarehouseDto {
   id: number;
   name: string;
+  normalizedName?: string;
   address: string;
   city: string;
   district: string;
@@ -124,6 +124,7 @@ export interface ProductDto {
   categoryId: number;
   categoryName: string;
   name: string;
+  normalizedName?: string;
   barcode: string;
   image?: string;
   salePrice: number;

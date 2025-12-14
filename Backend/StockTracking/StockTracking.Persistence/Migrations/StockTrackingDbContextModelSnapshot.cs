@@ -165,10 +165,6 @@ namespace StockTracking.Persistence.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -180,10 +176,18 @@ namespace StockTracking.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
 
                     b.ToTable("Categories", (string)null);
                 });
@@ -338,6 +342,11 @@ namespace StockTracking.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<decimal>("SalePrice")
                         .HasColumnType("decimal(18,2)");
 
@@ -353,6 +362,9 @@ namespace StockTracking.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
 
                     b.ToTable("Products", (string)null);
                 });
@@ -722,6 +734,11 @@ namespace StockTracking.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
                     b.Property<decimal>("OfficialRentAmount")
                         .HasColumnType("decimal(18,2)");
 
@@ -741,6 +758,9 @@ namespace StockTracking.Persistence.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NormalizedName")
+                        .IsUnique();
 
                     b.ToTable("Warehouses", (string)null);
                 });

@@ -16,8 +16,11 @@ namespace StockTracking.Persistence.Configurations
                 .IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(c => c.Description)
-                .HasMaxLength(500);
+            builder.Property(c => c.NormalizedName)
+                .IsRequired()
+                .HasMaxLength(150);
+            
+            builder.HasIndex(c => c.NormalizedName).IsUnique();
 
             builder.HasMany(c => c.Products)
                    .WithOne(p => p.Category)

@@ -149,7 +149,6 @@ export default function CategoriesPage() {
                       <div key={cat.id} className="p-3 border rounded-lg bg-slate-50 flex items-center justify-between group">
                         <div>
                           <div className="font-medium text-sm">{cat.name}</div>
-                          <div className="text-xs text-gray-500 line-clamp-1">{cat.description}</div>
                         </div>
                         <div className="flex gap-1">
                           <Button
@@ -192,7 +191,6 @@ export default function CategoriesPage() {
               <TableRow>
                 <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead>Ad</TableHead>
-                <TableHead>Açıklama</TableHead>
                 {canEdit && <TableHead className="text-right">İşlemler</TableHead>}
               </TableRow>
             </TableHeader>
@@ -206,7 +204,7 @@ export default function CategoriesPage() {
                   <TableRow key={item.id} className="hover:bg-slate-50/50">
                     <TableCell className="font-mono text-xs text-slate-500">{item.id}</TableCell>
                     <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="text-slate-600">{item.description}</TableCell>
+
 
                     {canEdit && (
                       <TableCell className="text-right space-x-2">

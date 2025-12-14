@@ -16,14 +16,12 @@ namespace StockTracking.Domain.Entities
         public string? DocumentNumber { get; set; }
         public DateTime DocumentDate { get; set; }
 
-        // MALI DEĞERLER
-        public decimal Amount { get; set; } // Matrah
+        public decimal Amount { get; set; }
         public decimal VatAmount { get; set; }
         public decimal WithholdingAmount { get; set; }
-        // TotalAmount = Amount + VatAmount
 
         public string? Description { get; set; }
 
-        public bool IsVatIncludedEntry { get; set; } // Giriş yapılırken KDV dahil mi girildi?
+        public bool IsVatIncludedEntry { get; set; }
     }
 }

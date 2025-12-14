@@ -4,6 +4,7 @@ using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
 using StockTracking.Application.Wrappers;
 using StockTracking.Domain.Entities;
+using StockTracking.Application.Extensions;
 
 namespace StockTracking.Application.Services
 {
@@ -39,7 +40,12 @@ namespace StockTracking.Application.Services
                 return ServiceResponse<ProductDto>.Fail("Bu barkoda sahip bir ürün zaten mevcut.");
             }
 
+            var normalizedName = request.Name.ToNormalizedString();
+            var existingProductByName = await _unitOfWork.Products.GetSingleAsync(p => p.NormalizedName == normalizedName && !p.IsDeleted);
+            if (existingProductByName != null) return ServiceResponse<ProductDto>.Fail("Bu isimde bir ürün zaten mevcut.");
+
             var product = _mapper.Map<Product>(request);
+            product.NormalizedName = normalizedName;
             await _unitOfWork.Products.AddAsync(product);
             await _unitOfWork.SaveChangesAsync();
 
@@ -62,13 +68,12 @@ namespace StockTracking.Application.Services
             var product = await _unitOfWork.Products.GetByIdAsync(request.Id);
             if (product == null) return ServiceResponse<bool>.Fail("Ürün bulunamadı.");
 
-            if (product.Barcode != request.Barcode)
+            if (product.Name != request.Name)
             {
-                var existingProduct = await _unitOfWork.Products.GetSingleAsync(p => p.Barcode == request.Barcode);
-                if (existingProduct != null)
-                {
-                    return ServiceResponse<bool>.Fail("Bu barkoda sahip başka bir ürün zaten mevcut.");
-                }
+                var normalizedName = request.Name.ToNormalizedString();
+                var existingProductByName = await _unitOfWork.Products.GetSingleAsync(p => p.NormalizedName == normalizedName && p.Id != request.Id && !p.IsDeleted);
+                if (existingProductByName != null) return ServiceResponse<bool>.Fail("Bu isimde başka bir ürün zaten mevcut.");
+                product.NormalizedName = normalizedName;
             }
 
             _mapper.Map(request, product);

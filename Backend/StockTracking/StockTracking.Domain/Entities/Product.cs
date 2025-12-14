@@ -13,6 +13,7 @@ namespace StockTracking.Domain.Entities
 
         public int CategoryId { get; set; }
         public string Name { get; set; }
+        public string NormalizedName { get; set; }
         public string Barcode { get; set; }
         public string? Image { get; set; }
 

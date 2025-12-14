@@ -34,7 +34,7 @@ namespace StockTracking.Persistence.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    NormalizedName = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -75,6 +75,7 @@ namespace StockTracking.Persistence.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    NormalizedName = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Address = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     City = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     District = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
@@ -124,6 +125,7 @@ namespace StockTracking.Persistence.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     CategoryId = table.Column<int>(type: "integer", nullable: false),
                     Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    NormalizedName = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Barcode = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     Image = table.Column<string>(type: "text", nullable: true),
                     SalePrice = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
@@ -546,6 +548,12 @@ namespace StockTracking.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Categories_NormalizedName",
+                table: "Categories",
+                column: "NormalizedName",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ExpenseTransactions_ExpenseCategoryId",
                 table: "ExpenseTransactions",
                 column: "ExpenseCategoryId");
@@ -570,6 +578,12 @@ namespace StockTracking.Persistence.Migrations
                 name: "IX_Products_CategoryId",
                 table: "Products",
                 column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_NormalizedName",
+                table: "Products",
+                column: "NormalizedName",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SaleItems_ProductId",
@@ -646,6 +660,12 @@ namespace StockTracking.Persistence.Migrations
                 name: "IX_StockTransfers_TargetWarehouseId",
                 table: "StockTransfers",
                 column: "TargetWarehouseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Warehouses_NormalizedName",
+                table: "Warehouses",
+                column: "NormalizedName",
+                unique: true);
         }
 
         /// <inheritdoc />

@@ -1,4 +1,4 @@
-using AutoMapper;
+ï»¿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StockTracking.Application.DTOs.Warehouse;
@@ -6,6 +6,7 @@ using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
 using StockTracking.Application.Wrappers;
 using StockTracking.Domain.Entities;
+using StockTracking.Application.Extensions;
 using System.Text.RegularExpressions;
 
 namespace StockTracking.Application.Services
@@ -34,16 +35,18 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<WarehouseDto>> GetByIdAsync(int id)
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(id);
-            if (warehouse == null) return ServiceResponse<WarehouseDto>.Fail("Depo bulunamadý.");
+            if (warehouse == null) return ServiceResponse<WarehouseDto>.Fail("Depo bulunamadÄ±.");
             return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse));
         }
 
         public async Task<ServiceResponse<WarehouseDto>> CreateAsync(CreateWarehouseDto request)
         {
-            var existing = await _unitOfWork.Warehouses.GetSingleAsync(w => w.Name == request.Name);
+            var normalizedName = request.Name.ToNormalizedString();
+            var existing = await _unitOfWork.Warehouses.GetSingleAsync(w => w.NormalizedName == normalizedName && !w.IsDeleted);
             if (existing != null) return ServiceResponse<WarehouseDto>.Fail("Bu isimde bir depo zaten mevcut.");
 
             var warehouse = _mapper.Map<Warehouse>(request);
+            warehouse.NormalizedName = normalizedName;
             
             // Auto-set Tax Rates based on RentType
             if (warehouse.RentType == Domain.Enums.RentType.Sahis)
@@ -78,16 +81,24 @@ namespace StockTracking.Application.Services
             var managerUser = new User { FullName = $"{request.Name} Depo", UserName = $"{cleanName}_depo", Email = $"{cleanName}_depo@stock.com", PhoneNumber = "5550000000", WarehouseId = warehouse.Id, IsActive = true };
             await CreateUserWithRole(managerUser, password, "DepoSorumlusu");
 
-            var salesUser = new User { FullName = $"{request.Name} Satýþ", UserName = $"{cleanName}_satis", Email = $"{cleanName}_satis@stock.com", PhoneNumber = "5550000000", WarehouseId = warehouse.Id, IsActive = true };
+            var salesUser = new User { FullName = $"{request.Name} SatÄ±ÅŸ", UserName = $"{cleanName}_satis", Email = $"{cleanName}_satis@stock.com", PhoneNumber = "5550000000", WarehouseId = warehouse.Id, IsActive = true };
             await CreateUserWithRole(salesUser, password, "SatisPersoneli");
 
-            return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse), $"Depo açýldý. Kullanýcýlar oluþturuldu: {managerUser.UserName} ve {salesUser.UserName}");
+            return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse), $"Depo aÃ§Ä±ldÄ±. KullanÄ±cÄ±lar oluÅŸturuldu: {managerUser.UserName} ve {salesUser.UserName}");
         }
 
         public async Task<ServiceResponse<bool>> UpdateAsync(UpdateWarehouseDto request)
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(request.Id);
-            if (warehouse == null) return ServiceResponse<bool>.Fail("Depo bulunamadý.");
+            if (warehouse == null) return ServiceResponse<bool>.Fail("Depo bulunamadÄ±.");
+            if (warehouse.Name != request.Name)
+            {
+                var normalizedName = request.Name.ToNormalizedString();
+                var existing = await _unitOfWork.Warehouses.GetSingleAsync(w => w.NormalizedName == normalizedName && w.Id != request.Id && !w.IsDeleted);
+                if (existing != null) return ServiceResponse<bool>.Fail("Bu isimde baÅŸka bir depo zaten mevcut.");
+                warehouse.NormalizedName = normalizedName;
+            }
+
             _mapper.Map(request, warehouse);
 
              // Auto-set Tax Rates based on RentType (if changed)
@@ -104,13 +115,13 @@ namespace StockTracking.Application.Services
 
             _unitOfWork.Warehouses.Update(warehouse);
             await _unitOfWork.SaveChangesAsync();
-            return new ServiceResponse<bool>(true, "Depo güncellendi.");
+            return new ServiceResponse<bool>(true, "Depo gÃ¼ncellendi.");
         }
 
         public async Task<ServiceResponse<bool>> DeleteAsync(int id)
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(id);
-            if (warehouse == null) return ServiceResponse<bool>.Fail("Depo bulunamadý.");
+            if (warehouse == null) return ServiceResponse<bool>.Fail("Depo bulunamadÄ±.");
 
             var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.WarehouseId == id && s.Quantity > 0);
             if (hasStock != null) return ServiceResponse<bool>.Fail("Bu depoda stok var. Silinemez.");
@@ -118,13 +129,13 @@ namespace StockTracking.Application.Services
             await _unitOfWork.Warehouses.ArchiveAsync(id);
             await _unitOfWork.SaveChangesAsync();
 
-            return new ServiceResponse<bool>(true, "Depo pasife alýndý (Arþivlendi).");
+            return new ServiceResponse<bool>(true, "Depo pasife alÄ±ndÄ± (ArÅŸivlendi).");
         }
 
         public async Task<ServiceResponse<bool>> ActivateAsync(int id)
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(id);
-            if (warehouse == null) return ServiceResponse<bool>.Fail("Depo bulunamadý.");
+            if (warehouse == null) return ServiceResponse<bool>.Fail("Depo bulunamadÄ±.");
 
             await _unitOfWork.Warehouses.RestoreAsync(id);
             await _unitOfWork.SaveChangesAsync();
@@ -135,7 +146,7 @@ namespace StockTracking.Application.Services
         public async Task<ServiceResponse<bool>> HardDeleteAsync(int id)
         {
             var warehouse = await _unitOfWork.Warehouses.GetByIdAsync(id);
-            if (warehouse == null) return ServiceResponse<bool>.Fail("Depo bulunamadý.");
+            if (warehouse == null) return ServiceResponse<bool>.Fail("Depo bulunamadÄ±.");
 
             var hasStock = await _unitOfWork.Stocks.GetSingleAsync(s => s.WarehouseId == id && s.Quantity > 0);
             if (hasStock != null) return ServiceResponse<bool>.Fail("Bu depoda stok var. Silinemez.");
@@ -157,7 +168,7 @@ namespace StockTracking.Application.Services
         }
         private string CleanUsername(string text)
         {
-            string unaccented = text.ToLower().Replace('ý', 'i').Replace('ð', 'g').Replace('ü', 'u').Replace('þ', 's').Replace('ö', 'o').Replace('ç', 'c').Replace(' ', '_');
+            string unaccented = text.ToLower().Replace('Ä±', 'i').Replace('ÄŸ', 'g').Replace('Ã¼', 'u').Replace('ÅŸ', 's').Replace('Ã¶', 'o').Replace('Ã§', 'c').Replace(' ', '_');
             return Regex.Replace(unaccented, "[^a-z0-9_]", "");
         }
     }

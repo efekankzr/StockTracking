@@ -13,6 +13,7 @@ namespace StockTracking.Domain.Entities
         }
 
         public string Name { get; set; }
+        public string NormalizedName { get; set; }
         public string Address { get; set; }
 
         public string City { get; set; }
@@ -20,7 +21,6 @@ namespace StockTracking.Domain.Entities
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 
-        // --- KÝRA BÝLGÝLERÝ ---
         public RentType RentType { get; set; }
         public decimal OfficialRentAmount { get; set; }
         public decimal UnofficialRentAmount { get; set; }
