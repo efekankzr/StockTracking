@@ -6,5 +6,6 @@ namespace StockTracking.Application.Interfaces.Repositories
     {
         Task<List<Sale>> GetSalesByDateAsync(DateTime date);
         Task<List<Sale>> GetLatestSalesAsync(int count);
+        Task<List<Sale>> GetAllWithItemsAsync();
     }
 }

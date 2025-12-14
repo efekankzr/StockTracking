@@ -7,21 +7,26 @@ namespace StockTracking.Persistence.Repositories
 {
     public class ExpenseTransactionRepository : GenericRepository<ExpenseTransaction>, IExpenseTransactionRepository
     {
-        private readonly StockTrackingDbContext _context;
-
         public ExpenseTransactionRepository(StockTrackingDbContext context) : base(context)
         {
-            _context = context;
         }
 
         public async Task<List<ExpenseTransaction>> GetAllWithDetailsAsync()
         {
             return await _context.ExpenseTransactions
-                .Include(t => t.ExpenseCategory)
-                .Include(t => t.Warehouse)
-                .Include(t => t.User)
-                .OrderByDescending(t => t.DocumentDate)
-                .AsNoTracking()
+                .Include(x => x.ExpenseCategory)
+                .Include(x => x.Warehouse)
+                .Include(x => x.User)
+                .OrderByDescending(x => x.DocumentDate)
+                .ToListAsync();
+        }
+
+        public async Task<List<ExpenseTransaction>> GetByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+             return await _context.ExpenseTransactions
+                .Include(x => x.ExpenseCategory)
+                .Where(x => x.DocumentDate >= startDate && x.DocumentDate <= endDate)
+                .OrderBy(x => x.DocumentDate)
                 .ToListAsync();
         }
     }

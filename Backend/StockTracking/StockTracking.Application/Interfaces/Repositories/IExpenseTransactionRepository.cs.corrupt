@@ -4,7 +4,7 @@ namespace StockTracking.Application.Interfaces.Repositories
 {
     public interface IExpenseTransactionRepository : IGenericRepository<ExpenseTransaction>
     {
+        // Giderleri çekerken Kategori, Depo ve Personel adlarýný da getirmek için
         Task<List<ExpenseTransaction>> GetAllWithDetailsAsync();
-        Task<List<ExpenseTransaction>> GetByDateRangeAsync(DateTime startDate, DateTime endDate);
     }
 }

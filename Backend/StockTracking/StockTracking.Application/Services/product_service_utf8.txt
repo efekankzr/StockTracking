@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using StockTracking.Application.DTOs.Product;
 using StockTracking.Application.Interfaces.Repositories;
 using StockTracking.Application.Interfaces.Services;
@@ -33,12 +33,6 @@ namespace StockTracking.Application.Services
 
         public async Task<ServiceResponse<ProductDto>> CreateAsync(CreateProductDto request)
         {
-            var existingProduct = await _unitOfWork.Products.GetSingleAsync(p => p.Barcode == request.Barcode);
-            if (existingProduct != null)
-            {
-                return ServiceResponse<ProductDto>.Fail("Bu barkoda sahip bir ürün zaten mevcut.");
-            }
-
             var product = _mapper.Map<Product>(request);
             await _unitOfWork.Products.AddAsync(product);
             await _unitOfWork.SaveChangesAsync();
@@ -61,15 +55,6 @@ namespace StockTracking.Application.Services
         {
             var product = await _unitOfWork.Products.GetByIdAsync(request.Id);
             if (product == null) return ServiceResponse<bool>.Fail("Ürün bulunamadı.");
-
-            if (product.Barcode != request.Barcode)
-            {
-                var existingProduct = await _unitOfWork.Products.GetSingleAsync(p => p.Barcode == request.Barcode);
-                if (existingProduct != null)
-                {
-                    return ServiceResponse<bool>.Fail("Bu barkoda sahip başka bir ürün zaten mevcut.");
-                }
-            }
 
             _mapper.Map(request, product);
             _unitOfWork.Products.Update(product);

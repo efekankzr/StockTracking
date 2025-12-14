@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -306,13 +306,10 @@ namespace StockTracking.Persistence.Migrations
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     DocumentNumber = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     DocumentDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    BaseAmount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    VatRate = table.Column<int>(type: "integer", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
                     VatAmount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    WithholdingRate = table.Column<int>(type: "integer", nullable: false),
                     WithholdingAmount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
-                    TotalAmount = table.Column<decimal>(type: "numeric(18,4)", nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     IsVatIncludedEntry = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)

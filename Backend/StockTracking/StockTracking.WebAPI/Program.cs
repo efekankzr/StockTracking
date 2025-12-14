@@ -1,13 +1,21 @@
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StockTracking.Application;
 using StockTracking.Application.Wrappers;
 using StockTracking.Persistence;
+using StockTracking.Persistence.Context;
 using StockTracking.WebAPI;
 using StockTracking.WebAPI.Middlewares;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,6 +90,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:3000")
+                   .AllowAnyMethod()
+                   .AllowAnyHeader()
+                   .AllowCredentials();
+        });
+});
+
 var app = builder.Build();
 
 // Seed Data
@@ -90,6 +110,9 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
+        var context = services.GetRequiredService<StockTrackingDbContext>();
+        await context.Database.MigrateAsync();
+
         await SeedData.Initialize(services);
     }
     catch (Exception ex)
@@ -110,6 +133,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowSpecificOrigin");
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -8,7 +8,7 @@ namespace StockTracking.Persistence.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class, IEntity, new()
     {
-        private readonly StockTrackingDbContext _context;
+        protected readonly StockTrackingDbContext _context;
         private readonly DbSet<T> _dbSet;
 
         public GenericRepository(StockTrackingDbContext context)

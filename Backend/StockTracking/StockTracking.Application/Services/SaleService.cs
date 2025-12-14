@@ -1,6 +1,4 @@
 using AutoMapper;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using StockTracking.Application.DTOs.Report;
 using StockTracking.Application.DTOs.Sale;
 using StockTracking.Application.Interfaces.Repositories;
@@ -15,187 +13,137 @@ namespace StockTracking.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly UserManager<User> _userManager;
 
-        public SaleService(IUnitOfWork unitOfWork, IMapper mapper, UserManager<User> userManager)
+        public SaleService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _userManager = userManager;
         }
 
         public async Task<ServiceResponse<List<SaleDto>>> GetAllSalesAsync()
         {
-            var sales = await _unitOfWork.Sales.GetAllAsync();
-            return new ServiceResponse<List<SaleDto>>(_mapper.Map<List<SaleDto>>(sales));
+            var sales = await _unitOfWork.Sales.GetAllWithItemsAsync();
+            var result = _mapper.Map<List<SaleDto>>(sales);
+            return ServiceResponse<List<SaleDto>>.SuccessResult(result);
         }
 
         public async Task<ServiceResponse<SaleDto>> CreateSaleAsync(CreateSaleDto request, int userId)
         {
+            if (request.Items == null || !request.Items.Any())
+                return ServiceResponse<SaleDto>.Fail("SatÄ±ÅŸ kalemleri boÅŸ olamaz.");
+
             var sale = new Sale
             {
-                TransactionNumber = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
-                TransactionDate = DateTime.Now,
-                UserId = userId,
-                ActualSalesPersonId = request.ActualSalesPersonId ?? userId,
                 WarehouseId = request.WarehouseId,
-                PaymentMethod = request.PaymentMethod,
-                TotalAmount = 0,
-                TotalVatAmount = 0,
+                UserId = userId,
+                ActualSalesPersonId = request.ActualSalesPersonId,
+                TransactionDate = DateTime.Now,
+                TransactionNumber = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
+                PaymentMethod = (PaymentMethod)request.PaymentMethod,
                 SaleItems = new List<SaleItem>()
             };
 
-        
+            decimal grandTotal = 0;
 
             foreach (var itemDto in request.Items)
             {
                 var product = await _unitOfWork.Products.GetByIdAsync(itemDto.ProductId);
-                if (product == null) return new ServiceResponse<SaleDto>($"Ürün bulunamadý (ID: {itemDto.ProductId})");
-
-                var stock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == itemDto.ProductId && s.WarehouseId == request.WarehouseId);
-                if (stock == null || stock.Quantity < itemDto.Quantity)
-                    return new ServiceResponse<SaleDto>($"{product.Name} için yetersiz stok!");
-
-                decimal priceWithVat = itemDto.PriceWithVat ?? product.SalePrice;
-                decimal vatRate = itemDto.VatRate ?? product.TaxRateSelling;
-
-                if (request.PaymentMethod == PaymentMethod.KrediKarti && vatRate == 0)
-                    return ServiceResponse<SaleDto>.Fail("Kredi kartý ile satýþta KDV 0 olamaz!");
-
-                decimal netPrice = priceWithVat / (1 + (vatRate / 100));
-                decimal vatPerUnit = priceWithVat - netPrice;
-                decimal lineTotal = priceWithVat * itemDto.Quantity;
-                decimal lineTotalVat = vatPerUnit * itemDto.Quantity;
+                if (product == null) return ServiceResponse<SaleDto>.Fail($"ÃœrÃ¼n bulunamadÄ± (ID: {itemDto.ProductId})");
 
                 var saleItem = new SaleItem
                 {
                     ProductId = itemDto.ProductId,
                     Quantity = itemDto.Quantity,
-                    UnitCost = stock.AverageCost,
-                    UnitPrice = priceWithVat,
-                    VatRate = vatRate,
-                    VatAmount = lineTotalVat
+                    UnitCost = product.SalePrice, // Maliyet mantÄ±ÄŸÄ± buraya eklenebilir
+                    VatRate = product.TaxRateSelling
                 };
-
-                sale.SaleItems.Add(saleItem);
-                sale.TotalAmount += lineTotal;
-                sale.TotalVatAmount += lineTotalVat;
-
-                stock.Quantity -= itemDto.Quantity;
-                _unitOfWork.Stocks.Update(stock);
-
-                var log = new StockLog
+                
+                if(itemDto.PriceWithVat.HasValue)
                 {
-                    ProductId = itemDto.ProductId,
-                    WarehouseId = request.WarehouseId,
-                    ChangeAmount = -itemDto.Quantity,
-                    ProcessType = ProcessType.Satis,
-                    CreatedByUserId = userId,
-                    CreatedDate = DateTime.Now
-                };
-                await _unitOfWork.StockLogs.AddAsync(log);
+                    saleItem.UnitPrice = itemDto.PriceWithVat.Value / (1 + (product.TaxRateSelling / 100));
+                    saleItem.VatAmount = itemDto.PriceWithVat.Value - saleItem.UnitPrice;
+                }
+                else 
+                {
+                    saleItem.UnitPrice = product.SalePrice;
+                    saleItem.VatAmount = (saleItem.UnitPrice * product.TaxRateSelling) / 100;
+                }
+
+                grandTotal += saleItem.UnitPrice * saleItem.Quantity;
+                sale.SaleItems.Add(saleItem);
             }
+            
+            sale.TotalAmount = grandTotal;
 
             await _unitOfWork.Sales.AddAsync(sale);
             await _unitOfWork.SaveChangesAsync();
 
-            var responseDto = _mapper.Map<SaleDto>(sale);
-            return new ServiceResponse<SaleDto>(responseDto, $"Satýþ baþarýlý. Toplam: {sale.TotalAmount:C2}");
+            return ServiceResponse<SaleDto>.SuccessResult(_mapper.Map<SaleDto>(sale), "SatÄ±ÅŸ baÅŸarÄ±yla oluÅŸturuldu.");
         }
 
         public async Task<ServiceResponse<List<UserSalesReportDto>>> GetDailyReportAsync(DateTime date)
         {
-            var allUsers = await _userManager.Users.ToListAsync();
-            var dailySales = await ((ISaleRepository)_unitOfWork.Sales).GetSalesByDateAsync(date);
+            var sales = await _unitOfWork.Sales.GetSalesByDateAsync(date);
+            
+            var report = sales.GroupBy(x => x.ActualSalesPersonId ?? x.UserId)
+                .Select(g => {
+                    var user = g.First().ActualSalesPerson ?? g.First().User;
+                    var totalRevenue = g.Sum(x => x.TotalAmount);
+                    var totalCost = g.SelectMany(x => x.SaleItems).Sum(si => si.UnitCost * si.Quantity);
 
-            var reportList = new List<UserSalesReportDto>();
-
-            foreach (var user in allUsers)
-            {
-                var userSales = dailySales.Where(s => s.ActualSalesPersonId == user.Id).ToList();
-                var userRole = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Personel";
-
-                var salesDetails = userSales.SelectMany(s => s.SaleItems.Select(i =>
-                {
-                    decimal unitCost = i.UnitCost;
-                    decimal profit = (i.UnitPrice - unitCost) * i.Quantity;
-
-                    return new SaleDetailDto
+                    return new UserSalesReportDto
                     {
-                        SaleId = s.Id,
-                        ProductName = i.Product.Name,
-                        Barcode = i.Product.Barcode,
-                        Quantity = i.Quantity,
-                        Time = s.TransactionDate,
-
-                        UnitPrice = i.UnitPrice,
-                        TotalAmount = i.Quantity * i.UnitPrice,
-
-                        UnitCost = unitCost,
-                        Profit = profit
+                        UserId = g.Key,
+                        FullName = user?.FullName ?? "Bilinmeyen KullanÄ±cÄ±",
+                        Role = "Personel",
+                        TotalQuantity = g.SelectMany(x => x.SaleItems).Sum(si => si.Quantity),
+                        TotalAmount = totalRevenue,
+                        TotalCost = totalCost,
+                        TotalProfit = totalRevenue - totalCost,
+                        ProfitMargin = totalRevenue > 0 ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0,
+                        Sales = g.SelectMany(x => x.SaleItems.Select(si => new SaleDetailDto {
+                            SaleId = x.Id,
+                            ProductName = si.Product?.Name,
+                            Barcode = si.Product?.Barcode,
+                            Quantity = si.Quantity,
+                            Time = x.TransactionDate,
+                            UnitPrice = si.UnitPrice,
+                            TotalAmount = si.Quantity * si.UnitPrice,
+                            UnitCost = si.UnitCost,
+                            Profit = (si.UnitPrice - si.UnitCost) * si.Quantity
+                        })).ToList()
                     };
-                })).OrderByDescending(x => x.Time).ToList();
+                }).ToList();
 
-                var reportItem = new UserSalesReportDto
-                {
-                    UserId = user.Id,
-                    FullName = user.FullName,
-                    Role = userRole,
-
-                    TotalQuantity = salesDetails.Sum(x => x.Quantity),
-                    TotalAmount = salesDetails.Sum(x => x.TotalAmount),
-                    TotalCost = salesDetails.Sum(x => x.UnitCost * x.Quantity),
-                    TotalProfit = salesDetails.Sum(x => x.Profit),
-                    ProfitMargin = 0,
-                    Sales = salesDetails
-                };
-
-                if (reportItem.TotalAmount > 0)
-                {
-                    reportItem.ProfitMargin = (reportItem.TotalProfit / reportItem.TotalAmount) * 100;
-                }
-
-                reportList.Add(reportItem);
-            }
-
-            return new ServiceResponse<List<UserSalesReportDto>>(reportList.OrderByDescending(x => x.TotalAmount).ToList());
+            return ServiceResponse<List<UserSalesReportDto>>.SuccessResult(report);
         }
 
         public async Task<ServiceResponse<DashboardSummaryDto>> GetDashboardSummaryAsync()
         {
-            var summary = new DashboardSummaryDto();
-            var today = DateTime.Today;
-
-            var allSales = await _unitOfWork.Sales.GetAllAsync();
-
-            summary.TotalRevenue = allSales.Sum(s => s.TotalAmount);
-
-            summary.DailyRevenue = allSales
-                .Where(s => s.TransactionDate.Date == today)
-                .Sum(s => s.TotalAmount);
-
-            summary.MonthlyRevenue = allSales
-                .Where(s => s.TransactionDate.Month == today.Month && s.TransactionDate.Year == today.Year)
-                .Sum(s => s.TotalAmount);
-
+            // VeritabanÄ±ndan verilerin Ã§ekilmesi
+            var sales = await _unitOfWork.Sales.GetAllAsync();
             var stocks = await _unitOfWork.Stocks.GetAllAsync();
-            summary.TotalStockQuantity = stocks.Sum(s => s.Quantity);
+            var users = await _unitOfWork.Users.GetAllAsync();
+            var latestSales = await _unitOfWork.Sales.GetLatestSalesAsync(10);
 
-            summary.TotalEmployees = await _userManager.Users.CountAsync(u => u.UserName != "sysadmin");
-
-            var lastSales = await ((ISaleRepository)_unitOfWork.Sales).GetLatestSalesAsync(5);
-
-            summary.LatestSales = lastSales.Select(s => new LatestTransactionDto
+            var summary = new DashboardSummaryDto
             {
-                Id = s.Id,
-                TransactionNumber = s.TransactionNumber,
-                Date = s.TransactionDate,
-                SalesPerson = s.ActualSalesPerson?.FullName ?? s.User.FullName,
-                Warehouse = s.Warehouse.Name,
-                Amount = s.TotalAmount
-            }).ToList();
+                TotalRevenue = sales.Sum(x => x.TotalAmount),
+                DailyRevenue = sales.Where(x => x.TransactionDate.Date == DateTime.Today).Sum(x => x.TotalAmount),
+                MonthlyRevenue = sales.Where(x => x.TransactionDate.Month == DateTime.Today.Month && x.TransactionDate.Year == DateTime.Today.Year).Sum(x => x.TotalAmount),
+                TotalStockQuantity = stocks.Sum(x => x.Quantity),
+                TotalEmployees = users.Count,
+                LatestSales = latestSales.Select(s => new LatestTransactionDto {
+                    Id = s.Id,
+                    TransactionNumber = s.TransactionNumber,
+                    Date = s.TransactionDate,
+                    SalesPerson = s.ActualSalesPerson?.FullName ?? s.User?.FullName,
+                    Warehouse = s.Warehouse?.Name,
+                    Amount = s.TotalAmount
+                }).ToList()
+            };
 
-            return new ServiceResponse<DashboardSummaryDto>(summary);
+            return ServiceResponse<DashboardSummaryDto>.SuccessResult(summary);
         }
     }
 }

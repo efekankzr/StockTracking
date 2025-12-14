@@ -14,29 +14,28 @@ namespace StockTracking.Persistence.Configurations
             builder.Property(t => t.DocumentNumber).IsRequired().HasMaxLength(50);
             builder.Property(t => t.Description).HasMaxLength(500);
 
-            // --- FÝNANSAL HASSASÝYET ---
-            builder.Property(t => t.BaseAmount).HasColumnType("decimal(18,4)");
+            // --- FÄ°NANSAL HASSASÄ°YET ---
+            builder.Property(t => t.Amount).HasColumnType("decimal(18,4)");
             builder.Property(t => t.VatAmount).HasColumnType("decimal(18,4)");
             builder.Property(t => t.WithholdingAmount).HasColumnType("decimal(18,4)");
-            builder.Property(t => t.TotalAmount).HasColumnType("decimal(18,4)");
 
-            // --- ÝLÝÞKÝLER ---
+            // --- Ä°LÄ°ÅžKÄ°LER ---
 
-            // Kategori silinirse, geçmiþ gider kayýtlarý silinmesin (Restrict)
+            // Kategori silinirse, geÃ§miÅŸ gider kayÄ±tlarÄ± silinmesin (Restrict)
             builder.HasOne(t => t.ExpenseCategory)
                    .WithMany(c => c.Transactions)
                    .HasForeignKey(t => t.ExpenseCategoryId)
                    .IsRequired(false)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            // Depo silinirse, o depoya ait giderler durmalý (Rapor için)
+            // Depo silinirse, o depoya ait giderler durmalÄ± (Rapor iÃ§in)
             builder.HasOne(t => t.Warehouse)
-                   .WithMany() // Warehouse tarafýnda liste tutmuyoruz
+                   .WithMany() // Warehouse tarafÄ±nda liste tutmuyoruz
                    .HasForeignKey(t => t.WarehouseId)
                    .IsRequired(false)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            // Personel silinirse, kaydý giren kiþi null olmasýn (Restrict)
+            // Personel silinirse, kaydÄ± giren kiÅŸi null olmasÄ±n (Restrict)
             builder.HasOne(t => t.User)
                    .WithMany()
                    .HasForeignKey(t => t.UserId)

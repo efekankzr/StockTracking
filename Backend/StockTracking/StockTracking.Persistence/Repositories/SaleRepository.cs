@@ -37,5 +37,18 @@ namespace StockTracking.Persistence.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task<List<Sale>> GetAllWithItemsAsync()
+        {
+            return await _context.Sales
+                .Include(s => s.User)
+                .Include(s => s.Warehouse)
+                .Include(s => s.ActualSalesPerson)
+                .Include(s => s.SaleItems)
+                    .ThenInclude(si => si.Product)
+                .OrderByDescending(s => s.TransactionDate)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

@@ -46,13 +46,25 @@ export default function ProductsPage() {
   const createMutation = useMutation({
     mutationFn: productService.create,
     onSuccess: () => { toast.success('Ürün eklendi.'); queryClient.invalidateQueries({ queryKey: ['products'] }); setIsOpen(false); },
-    onError: () => toast.error('Hata oluştu.'),
+    onError: (err: any) => {
+      let msg = err?.response?.data?.message || 'Hata oluştu.';
+      if (err?.response?.data?.errors && err.response.data.errors.length > 0) {
+        msg = err.response.data.errors.join(', ');
+      }
+      toast.error(msg);
+    },
   });
 
   const updateMutation = useMutation({
     mutationFn: productService.update,
     onSuccess: () => { toast.success('Ürün güncellendi.'); queryClient.invalidateQueries({ queryKey: ['products'] }); setIsOpen(false); setEditingId(null); setEditingData(null); },
-    onError: () => toast.error('Hata oluştu.'),
+    onError: (err: any) => {
+      let msg = err?.response?.data?.message || 'Hata oluştu.';
+      if (err?.response?.data?.errors && err.response.data.errors.length > 0) {
+        msg = err.response.data.errors.join(', ');
+      }
+      toast.error(msg);
+    },
   });
 
   const archiveMutation = useMutation({

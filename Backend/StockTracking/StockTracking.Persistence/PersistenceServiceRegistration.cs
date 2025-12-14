@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StockTracking.Application.Interfaces.Repositories;
+using StockTracking.Domain.Entities;
 using StockTracking.Persistence.Context;
 using StockTracking.Persistence.Repositories;
 
@@ -16,6 +18,19 @@ namespace StockTracking.Persistence
                     configuration.GetConnectionString("DefaultConnection"),
                     b => b.MigrationsAssembly("StockTracking.Persistence")
                 ));
+
+            // Identity Configuration
+            services.AddIdentity<User, IdentityRole<int>>(options => 
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Password.RequiredLength = 6;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+            })
+            .AddEntityFrameworkStores<StockTrackingDbContext>()
+            .AddDefaultTokenProviders();
 
             // Repositories
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

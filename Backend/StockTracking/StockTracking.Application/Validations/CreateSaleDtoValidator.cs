@@ -13,13 +13,13 @@ namespace StockTracking.Application.Validations
             RuleFor(s => s.Items)
                 .NotEmpty().WithMessage("Satış yapılacak ürün listesi boş olamaz.");
 
-            RuleForEach(s => s.Items).SetValidator(new SaleItemDtoValidator());
+            RuleForEach(s => s.Items).SetValidator(new CreateSaleItemDtoValidator());
         }
     }
 
-    public class SaleItemDtoValidator : AbstractValidator<SaleItemDto>
+    public class CreateSaleItemDtoValidator : AbstractValidator<CreateSaleItemDto>
     {
-        public SaleItemDtoValidator()
+        public CreateSaleItemDtoValidator()
         {
             RuleFor(i => i.ProductId)
                 .GreaterThan(0).WithMessage("Ürün ID geçersiz.");
