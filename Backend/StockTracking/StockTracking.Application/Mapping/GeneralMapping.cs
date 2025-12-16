@@ -21,6 +21,11 @@ namespace StockTracking.Application.Mapping
     {
         public GeneralMapping()
         {
+            // --- CATEGORY MAPPING ---
+            CreateMap<Category, CategoryDto>().ReverseMap();
+            CreateMap<CreateCategoryDto, Category>();
+            CreateMap<UpdateCategoryDto, Category>();
+
             // --- USER MAPPING ---
             CreateMap<User, UserDto>()
                 .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse != null ? src.Warehouse.Name : "Yok"));

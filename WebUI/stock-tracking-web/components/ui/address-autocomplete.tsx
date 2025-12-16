@@ -54,17 +54,8 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
       try {
 
 
-        // Nominatim API (Resmi OpenStreetMap Servisi)
-        // countrycodes=tr -> Sadece Türkiye
-        // addressdetails=1 -> İl/İlçe detaylarını getir
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(debouncedQuery)}&addressdetails=1&limit=5&countrycodes=tr`;
-
-        const res = await fetch(url, {
-          headers: {
-            // Nominatim, isteğin nereden geldiğini bilmek ister (Kibar kullanım kuralı)
-            'Accept-Language': 'tr',
-          }
-        });
+        const url = `/api/proxy/nominatim?q=${encodeURIComponent(debouncedQuery)}`;
+        const res = await fetch(url);
 
         if (!res.ok) throw new Error(`API Hatası: ${res.status}`);
 
@@ -94,11 +85,7 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
   const handleSelect = (item: any) => {
     const addr = item.address;
 
-    // Adres parçalarını birleştir
     const displayLabel = item.display_name;
-
-    // İl ve İlçe bilgisini güvenli şekilde bul
-    // Nominatim bazen 'province', bazen 'city', bazen 'state' döndürür.
     const city = addr.province || addr.city || addr.state;
     const district = addr.town || addr.district || addr.county || addr.suburb;
 
@@ -147,11 +134,9 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
               <MapPin className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
               <div>
                 <div className="font-medium text-slate-900">
-                  {/* Kısa Adres (Örn: Migros) */}
                   {item.name || item.address.road || "Adres Detayı"}
                 </div>
                 <div className="text-xs text-slate-500 mt-0.5 line-clamp-2">
-                  {/* Uzun Açık Adres */}
                   {item.display_name}
                 </div>
               </div>
