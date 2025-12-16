@@ -12,7 +12,7 @@ using StockTracking.Persistence.Context;
 namespace StockTracking.Persistence.Migrations
 {
     [DbContext(typeof(StockTrackingDbContext))]
-    [Migration("20251216091937_InitialCreate")]
+    [Migration("20251216093901_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

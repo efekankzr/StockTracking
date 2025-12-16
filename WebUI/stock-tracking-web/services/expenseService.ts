@@ -1,11 +1,11 @@
 import api from '@/lib/api';
-import { 
-  ServiceResponse,
+import {
   ExpenseCategoryDto,
   CreateExpenseCategoryRequest,
   ExpenseTransactionDto,
   CreateExpenseTransactionRequest
-} from '@/types';
+} from '@/types/expense';
+import { ServiceResponse } from '@/types/common';
 
 const expenseService = {
   // --- KATEGORİ İŞLEMLERİ ---

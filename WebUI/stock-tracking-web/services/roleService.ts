@@ -1,5 +1,6 @@
 import api from '@/lib/api';
-import { RoleDto, CreateRoleRequest, ServiceResponse } from '@/types';
+import { RoleDto, CreateRoleRequest } from '@/types/role';
+import { ServiceResponse } from '@/types/common';
 
 const roleService = {
   getAll: async () => {

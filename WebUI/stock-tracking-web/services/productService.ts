@@ -1,11 +1,11 @@
 import api from '@/lib/api';
-import { 
-  ProductDto, 
-  ProductListDto, 
-  CreateProductRequest, 
-  UpdateProductRequest, 
-  ServiceResponse 
-} from '@/types';
+import {
+  ProductDto,
+  ProductListDto,
+  CreateProductRequest,
+  UpdateProductRequest
+} from '@/types/product';
+import { ServiceResponse } from '@/types/common';
 
 const productService = {
   getAll: async () => {
@@ -42,9 +42,9 @@ const productService = {
     const response = await api.delete<ServiceResponse<boolean>>(`/product/hard-delete/${id}`);
     return response.data;
   },
-  
+
   delete: async (id: number) => {
-     return await api.delete<ServiceResponse<boolean>>(`/product/${id}`).then(res => res.data);
+    return await api.delete<ServiceResponse<boolean>>(`/product/${id}`).then(res => res.data);
   }
 };
 

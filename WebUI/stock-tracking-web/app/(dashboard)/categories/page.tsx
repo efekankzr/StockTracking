@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import categoryService from '@/services/categoryService';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
@@ -13,8 +14,8 @@ import {
 import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, Edit, Loader2, Tags, Archive, RefreshCcw, ArchiveRestore } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Plus, Trash2, Edit, Loader2, Tags, Archive, RefreshCcw, ArchiveRestore, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { CategoryForm } from '@/components/forms/category-form';
 import { CategoryDto } from '@/types';
@@ -26,6 +27,7 @@ export default function CategoriesPage() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryDto | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const canEdit = user?.role === 'Admin';
 
@@ -37,11 +39,14 @@ export default function CategoriesPage() {
   const { activeCategories, archivedCategories } = useMemo(() => {
     if (!data?.data) return { activeCategories: [], archivedCategories: [] };
 
-    const active = data.data.filter(c => c.isActive);
+    const active = data.data
+      .filter(c => c.isActive)
+      .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
     const archived = data.data.filter(c => !c.isActive); // Pasif olanlar
 
     return { activeCategories: active, archivedCategories: archived };
-  }, [data]);
+  }, [data, searchQuery]);
 
   const createMutation = useMutation({
     mutationFn: categoryService.create,
@@ -146,27 +151,30 @@ export default function CategoriesPage() {
                     </div>
                   ) : (
                     archivedCategories.map(cat => (
-                      <div key={cat.id} className="p-3 border rounded-lg bg-slate-50 flex items-center justify-between group">
-                        <div>
-                          <div className="font-medium text-sm">{cat.name}</div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            size="icon" variant="outline" className="h-7 w-7 text-green-600 hover:bg-green-50"
-                            title="Geri Yükle"
-                            onClick={() => restoreMutation.mutate(cat.id)}
-                          >
-                            <RefreshCcw className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            size="icon" variant="outline" className="h-7 w-7 text-red-600 hover:bg-red-50"
-                            title="Kalıcı Sil"
-                            onClick={() => { if (confirm('Bu işlem geri alınamaz! Tamamen silinsin mi?')) permanentDeleteMutation.mutate(cat.id) }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
+                      <Card key={cat.id} className="overflow-hidden border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                        <CardContent className="p-3 flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-slate-800">{cat.name}</span>
+                            <span className="text-xs text-slate-400">ID: {cat.id}</span>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
+                              title="Geri Yükle"
+                              onClick={() => restoreMutation.mutate(cat.id)}
+                            >
+                              <RefreshCcw className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                              title="Kalıcı Sil"
+                              onClick={() => { if (confirm('Bu işlem geri alınamaz! Tamamen silinsin mi?')) permanentDeleteMutation.mutate(cat.id) }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))
                   )}
                 </div>
@@ -181,15 +189,26 @@ export default function CategoriesPage() {
       </div>
 
       <div className="flex-1 min-h-0 bg-white rounded-xl shadow border border-slate-200 overflow-hidden flex flex-col">
-        <div className="p-4 border-b shrink-0 flex items-center gap-2 bg-slate-50/50">
-          <Tags className="w-5 h-5 text-blue-600" />
-          <h3 className="font-semibold text-slate-700">Aktif Kategori Listesi</h3>
+        <div className="p-4 border-b shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+          <div className="flex items-center gap-2">
+            <Tags className="w-5 h-5 text-blue-600" />
+            <h3 className="font-semibold text-slate-700">Aktif Kategori Listesi</h3>
+          </div>
+
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Ad ile ara..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-white"
+            />
+          </div>
         </div>
         <div className="flex-1 overflow-auto p-0">
           <Table>
             <TableHeader className="sticky top-0 bg-slate-50 z-10 shadow-sm">
               <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead>Ad</TableHead>
                 {canEdit && <TableHead className="text-right">İşlemler</TableHead>}
               </TableRow>
@@ -197,12 +216,13 @@ export default function CategoriesPage() {
             <TableBody>
               {activeCategories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center h-40 text-gray-500">Aktif kategori bulunamadı.</TableCell>
+                  <TableCell colSpan={2} className="text-center h-40 text-gray-500">
+                    {searchQuery ? 'Arama sonucu bulunamadı.' : 'Aktif kategori bulunamadı.'}
+                  </TableCell>
                 </TableRow>
               ) : (
                 activeCategories.map((item) => (
                   <TableRow key={item.id} className="hover:bg-slate-50/50">
-                    <TableCell className="font-mono text-xs text-slate-500">{item.id}</TableCell>
                     <TableCell className="font-medium">{item.name}</TableCell>
 
 

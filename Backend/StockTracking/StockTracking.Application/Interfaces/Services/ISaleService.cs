@@ -9,6 +9,7 @@ namespace StockTracking.Application.Interfaces.Services
         Task<ServiceResponse<List<SaleDto>>> GetAllSalesAsync();
         Task<ServiceResponse<SaleDto>> CreateSaleAsync(CreateSaleDto request, int userId);
         Task<ServiceResponse<List<UserSalesReportDto>>> GetDailyReportAsync(DateTime date);
+        Task<ServiceResponse<List<UserSalesReportDto>>> GetMonthlyReportAsync(int year, int month);
         Task<ServiceResponse<DashboardSummaryDto>> GetDashboardSummaryAsync();
     }
 }

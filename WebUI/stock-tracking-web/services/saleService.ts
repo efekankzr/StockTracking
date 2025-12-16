@@ -1,5 +1,8 @@
 import api from '@/lib/api';
-import { SaleDto, CreateSaleRequest, ServiceResponse, UserSalesReportDto, DashboardSummaryDto } from '@/types';
+import { SaleDto, CreateSaleRequest } from '@/types/sale';
+import { UserSalesReportDto } from '@/types/report';
+import { DashboardSummaryDto } from '@/types/dashboard';
+import { ServiceResponse } from '@/types/common';
 
 const saleService = {
   getAll: async () => {
@@ -15,6 +18,11 @@ const saleService = {
   getDailyReport: async (date: Date) => {
     const dateString = date.toISOString();
     const response = await api.get<ServiceResponse<UserSalesReportDto[]>>(`/sale/report?date=${dateString}`);
+    return response.data;
+  },
+
+  getMonthlyReport: async (year: number, month: number) => {
+    const response = await api.get<ServiceResponse<UserSalesReportDto[]>>(`/sale/report/monthly?year=${year}&month=${month}`);
     return response.data;
   },
 

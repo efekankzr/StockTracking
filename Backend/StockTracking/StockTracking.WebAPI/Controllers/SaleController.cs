@@ -34,7 +34,7 @@ namespace StockTracking.WebAPI.Controllers
         public async Task<IActionResult> Create(CreateSaleDto request)
         {
             var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdString)) return Unauthorized(ServiceResponse<bool>.Fail("Kimlik doðrulanamadý."));
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized(ServiceResponse<bool>.Fail("Kimlik doÄŸrulanamadÄ±."));
 
             int userId = int.Parse(userIdString);
 
@@ -50,6 +50,14 @@ namespace StockTracking.WebAPI.Controllers
         {
             var queryDate = date ?? DateTime.Now;
             var response = await _service.GetDailyReportAsync(queryDate);
+            return Ok(response);
+        }
+
+        [HttpGet("report/monthly")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetMonthlyReport([FromQuery] int year, [FromQuery] int month)
+        {
+            var response = await _service.GetMonthlyReportAsync(year, month);
             return Ok(response);
         }
 

@@ -1,5 +1,6 @@
 import api from '@/lib/api';
-import { CreateUserRequest, UpdateUserRequest, UserDto, ServiceResponse } from '@/types';
+import { CreateUserRequest, UpdateUserRequest, UserDto } from '@/types/auth'; // UserDto is in auth in my split
+import { ServiceResponse } from '@/types/common';
 
 const userService = {
   getAll: async () => {

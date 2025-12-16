@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import saleService from '@/services/saleService';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
-import { Calendar as CalendarIcon, Loader2, TrendingUp, DollarSign, Percent, ShoppingBag, Receipt } from 'lucide-react';
+import { Calendar as CalendarIcon, Loader2, TrendingUp, DollarSign, Percent, ShoppingBag, Receipt, ArrowLeftRight } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -14,15 +14,25 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SaleDetailDto } from '@/types';
 
 export default function ProfitPage() {
+    const [reportType, setReportType] = useState<'daily' | 'monthly'>('daily');
     const [date, setDate] = useState<Date | undefined>(new Date());
+    const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
+    const [year, setYear] = useState<number>(new Date().getFullYear());
 
     const { data, isLoading } = useQuery({
-        queryKey: ['profitReport', date],
-        queryFn: () => saleService.getDailyReport(date || new Date()),
-        enabled: !!date,
+        queryKey: ['profitReport', reportType, date, month, year],
+        queryFn: () => {
+            if (reportType === 'daily') {
+                return saleService.getDailyReport(date || new Date());
+            } else {
+                return saleService.getMonthlyReport(year, month);
+            }
+        },
+        enabled: (reportType === 'daily' && !!date) || (reportType === 'monthly'),
     });
 
     // --- FİLTRELEME (Gerçek Personel) ---
@@ -65,17 +75,66 @@ export default function ProfitPage() {
                     <p className="text-slate-500 text-sm">Satış personelinin detaylı performans analizi</p>
                 </div>
 
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !date && "text-muted-foreground")}>
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, "d MMMM yyyy", { locale: tr }) : <span>Tarih Seçin</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                        <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
-                    </PopoverContent>
-                </Popover>
+                <div className="flex bg-slate-100 p-1.5 rounded-lg border border-slate-200">
+                    <button
+                        onClick={() => setReportType('daily')}
+                        className={cn(
+                            "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
+                            reportType === 'daily' ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        )}
+                    >
+                        Günlük
+                    </button>
+                    <button
+                        onClick={() => setReportType('monthly')}
+                        className={cn(
+                            "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
+                            reportType === 'monthly' ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        )}
+                    >
+                        Aylık
+                    </button>
+                </div>
+
+                {reportType === 'daily' ? (
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal bg-white", !date && "text-muted-foreground")}>
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date ? format(date, "d MMMM yyyy", { locale: tr }) : <span>Tarih Seçin</span>}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+                        </PopoverContent>
+                    </Popover>
+                ) : (
+                    <div className="flex gap-2">
+                        <Select value={month.toString()} onValueChange={(v) => setMonth(Number(v))}>
+                            <SelectTrigger className="w-[140px] bg-white">
+                                <SelectValue placeholder="Ay" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                                    <SelectItem key={m} value={m.toString()}>
+                                        {new Date(0, m - 1).toLocaleString('tr-TR', { month: 'long' })}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Select value={year.toString()} onValueChange={(v) => setYear(Number(v))}>
+                            <SelectTrigger className="w-[100px] bg-white">
+                                <SelectValue placeholder="Yıl" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (
+                                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
             </div>
 
             {/* ÖZET KARTLAR (5'li Grid) - Sabit */}

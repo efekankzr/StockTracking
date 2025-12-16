@@ -1,5 +1,6 @@
 import api from '@/lib/api';
-import { StockDto, CreateStockEntryRequest, ServiceResponse } from '@/types';
+import { StockDto, CreateStockEntryRequest } from '@/types/stock';
+import { ServiceResponse } from '@/types/common';
 
 const stockService = {
   getAll: async () => {

@@ -1,10 +1,10 @@
 import api from '@/lib/api';
-import { 
-  CategoryDto, 
-  CreateCategoryRequest, 
-  ServiceResponse, 
-  UpdateCategoryRequest 
-} from '@/types';
+import {
+  CategoryDto,
+  CreateCategoryRequest,
+  UpdateCategoryRequest
+} from '@/types/category';
+import { ServiceResponse } from '@/types/common';
 
 const categoryService = {
   getAll: async () => {
@@ -33,7 +33,7 @@ const categoryService = {
   },
 
   restore: async (id: number) => {
-    const response = await api.put<ServiceResponse<boolean>>(`/category/activate/${id}`, {}); 
+    const response = await api.put<ServiceResponse<boolean>>(`/category/activate/${id}`, {});
     return response.data;
   },
 

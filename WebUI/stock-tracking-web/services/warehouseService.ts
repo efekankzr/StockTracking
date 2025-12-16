@@ -1,10 +1,10 @@
 import api from '@/lib/api';
-import { 
-  WarehouseDto, 
-  CreateWarehouseRequest, 
-  UpdateWarehouseRequest, 
-  ServiceResponse 
-} from '@/types';
+import {
+  WarehouseDto,
+  CreateWarehouseRequest,
+  UpdateWarehouseRequest
+} from '@/types/warehouse';
+import { ServiceResponse } from '@/types/common';
 
 const warehouseService = {
   getAll: async () => {
@@ -41,7 +41,7 @@ const warehouseService = {
     const response = await api.delete<ServiceResponse<boolean>>(`/warehouse/hard-delete/${id}`);
     return response.data;
   },
-  
+
   delete: async (id: number) => {
     const response = await api.delete<ServiceResponse<boolean>>(`/warehouse/${id}`);
     return response.data;

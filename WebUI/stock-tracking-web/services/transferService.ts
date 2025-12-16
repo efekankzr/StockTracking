@@ -1,5 +1,6 @@
 import api from '@/lib/api';
-import { TransferDto, CreateTransferRequest, ServiceResponse } from '@/types';
+import { TransferDto, CreateTransferRequest } from '@/types/transfer';
+import { ServiceResponse } from '@/types/common';
 
 const transferService = {
   getAll: async () => {

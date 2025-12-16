@@ -1,5 +1,5 @@
 import api from '@/lib/api';
-import { SetupStatus } from '@/types';
+import { SetupStatus } from '@/types/setup';
 
 const systemService = {
     getSetupStatus: async () => {

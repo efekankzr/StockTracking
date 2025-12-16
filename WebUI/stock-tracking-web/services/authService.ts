@@ -1,5 +1,6 @@
 import api from '@/lib/api';
-import { LoginRequest, ServiceResponse, TokenResponse } from '@/types';
+import { LoginRequest, TokenResponse } from '@/types/auth'; // Combined
+import { ServiceResponse } from '@/types/common';
 
 const authService = {
   login: async (data: LoginRequest) => {

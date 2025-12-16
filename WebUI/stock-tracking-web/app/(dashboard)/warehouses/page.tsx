@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import warehouseService from '@/services/warehouseService';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
@@ -13,8 +14,8 @@ import {
 import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, Edit, Loader2, Map as MapIcon, ArchiveRestore, RefreshCcw, Archive } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Plus, Trash2, Edit, Loader2, Map as MapIcon, ArchiveRestore, RefreshCcw, Archive, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { WarehouseForm } from '@/components/forms/warehouse-form';
 import { WarehouseDto } from '@/types';
@@ -31,6 +32,7 @@ export default function WarehousesPage() {
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<WarehouseDto | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const canEdit = user?.role === 'Admin';
 
@@ -41,10 +43,13 @@ export default function WarehousesPage() {
 
   const { activeWarehouses, archivedWarehouses } = useMemo(() => {
     if (!data?.data) return { activeWarehouses: [], archivedWarehouses: [] };
-    const active = data.data.filter(w => w.isActive);
+    const active = data.data
+      .filter(w => w.isActive)
+      .filter(w => w.name.toLowerCase().includes(searchQuery.toLowerCase()) || w.district.toLowerCase().includes(searchQuery.toLowerCase()));
+
     const archived = data.data.filter(w => !w.isActive);
     return { activeWarehouses: active, archivedWarehouses: archived };
-  }, [data]);
+  }, [data, searchQuery]);
 
   const createMutation = useMutation({
     mutationFn: warehouseService.create,
@@ -135,16 +140,18 @@ export default function WarehousesPage() {
                     <div className="text-center text-gray-400 py-10 text-sm border-2 border-dashed rounded-lg">Boş</div>
                   ) : (
                     archivedWarehouses.map(w => (
-                      <div key={w.id} className="p-3 border rounded-lg bg-slate-50 flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-sm">{w.name}</div>
-                          <div className="text-xs text-gray-500">{w.city} / {w.district}</div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button size="icon" variant="outline" className="h-7 w-7 text-green-600" onClick={() => restoreMutation.mutate(w.id)} title="Geri Yükle"><RefreshCcw className="h-3.5 w-3.5" /></Button>
-                          <Button size="icon" variant="outline" className="h-7 w-7 text-red-600" onClick={() => { if (confirm('Kalıcı silinsin mi?')) permanentDeleteMutation.mutate(w.id) }} title="Kalıcı Sil"><Trash2 className="h-3.5 w-3.5" /></Button>
-                        </div>
-                      </div>
+                      <Card key={w.id} className="overflow-hidden border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                        <CardContent className="p-3 flex items-center justify-between">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-slate-800">{w.name}</span>
+                            <span className="text-xs text-slate-500">{w.city} / {w.district}</span>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:bg-green-50" onClick={() => restoreMutation.mutate(w.id)} title="Geri Yükle"><RefreshCcw className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-600 hover:bg-red-50" onClick={() => { if (confirm('Kalıcı silinsin mi?')) permanentDeleteMutation.mutate(w.id) }} title="Kalıcı Sil"><Trash2 className="h-4 w-4" /></Button>
+                          </div>
+                        </CardContent>
+                      </Card>
                     ))
                   )}
                 </div>
@@ -162,11 +169,21 @@ export default function WarehousesPage() {
 
         <div className="lg:col-span-4 h-full flex flex-col min-h-0">
           <Card className="h-full flex flex-col border shadow-sm overflow-hidden min-h-0">
-            <CardHeader className="pb-3 pt-4 px-4 shrink-0 border-b bg-slate-50/50">
-              <CardTitle className="text-base flex items-center gap-2 font-semibold text-slate-700">
+            <CardHeader className="pb-3 pt-4 px-4 shrink-0 border-b bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
                 <MapIcon className="w-4 h-4 text-blue-600" />
-                Aktif Depolar
-              </CardTitle>
+                <CardTitle className="text-base font-semibold text-slate-700">Aktif Depolar</CardTitle>
+              </div>
+
+              <div className="relative w-full sm:w-48">
+                <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                <Input
+                  placeholder="Depo adı veya ilçe..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 h-8 text-xs bg-white"
+                />
+              </div>
             </CardHeader>
 
             <CardContent className="flex-1 overflow-y-auto p-0 min-h-0">
@@ -179,7 +196,9 @@ export default function WarehousesPage() {
                 </TableHeader>
                 <TableBody>
                   {activeWarehouses.length === 0 ? (
-                    <TableRow><TableCell colSpan={2} className="text-center h-24 text-gray-500">Aktif depo yok.</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={2} className="text-center h-24 text-gray-500">
+                      {searchQuery ? 'Depo bulunamadı.' : 'Aktif depo yok.'}
+                    </TableCell></TableRow>
                   ) : (
                     activeWarehouses.map((item) => (
                       <TableRow key={item.id} className="hover:bg-slate-50 transition-colors border-b-slate-100">
