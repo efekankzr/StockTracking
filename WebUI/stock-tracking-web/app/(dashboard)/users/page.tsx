@@ -48,8 +48,8 @@ export default function UsersPage() {
     let all = users.data.filter(u => u.username !== 'sysadmin');
 
     // 2. Gruplara ayır
-    let system = all.filter(u => u.username.endsWith('_satis') || u.username.endsWith('_depo'));
-    let custom = all.filter(u => !u.username.endsWith('_satis') && !u.username.endsWith('_depo'));
+    let system = all.filter(u => u.username.endsWith('_satis') || u.username.endsWith('_depo') || u.username.endsWith('@depo.com') || u.username.endsWith('@satis.com'));
+    let custom = all.filter(u => !u.username.endsWith('_satis') && !u.username.endsWith('_depo') && !u.username.endsWith('@depo.com') && !u.username.endsWith('@satis.com'));
 
     // 3. CUSTOM USERS FİLTRESİ (İsim ve Depo)
     if (searchText) {

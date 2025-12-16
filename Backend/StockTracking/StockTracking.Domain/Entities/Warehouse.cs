@@ -1,5 +1,4 @@
 using StockTracking.Domain.Entities.Common;
-using StockTracking.Domain.Enums;
 
 namespace StockTracking.Domain.Entities
 {
@@ -21,11 +20,7 @@ namespace StockTracking.Domain.Entities
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 
-        public RentType RentType { get; set; }
-        public decimal OfficialRentAmount { get; set; }
-        public decimal UnofficialRentAmount { get; set; }
-        public int StopajRate { get; set; } = 20;
-        public int VatRate { get; set; } = 20;
+
 
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; } = false;

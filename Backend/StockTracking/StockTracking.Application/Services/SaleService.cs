@@ -37,7 +37,7 @@ namespace StockTracking.Application.Services
                 WarehouseId = request.WarehouseId,
                 UserId = userId,
                 ActualSalesPersonId = request.ActualSalesPersonId,
-                TransactionDate = DateTime.Now,
+                TransactionDate = DateTime.UtcNow,
                 TransactionNumber = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
                 PaymentMethod = (PaymentMethod)request.PaymentMethod,
                 SaleItems = new List<SaleItem>()
@@ -54,23 +54,31 @@ namespace StockTracking.Application.Services
                 {
                     ProductId = itemDto.ProductId,
                     Quantity = itemDto.Quantity,
-                    UnitCost = product.SalePrice, // Maliyet mantığı buraya eklenebilir
-                    VatRate = product.TaxRateSelling
+                    UnitCost = product.SalePrice
                 };
                 
-                if(itemDto.PriceWithVat.HasValue)
+                if(itemDto.UnitPrice.HasValue)
                 {
-                    saleItem.UnitPrice = itemDto.PriceWithVat.Value / (1 + (product.TaxRateSelling / 100));
-                    saleItem.VatAmount = itemDto.PriceWithVat.Value - saleItem.UnitPrice;
+                    saleItem.UnitPrice = itemDto.UnitPrice.Value;
                 }
                 else 
                 {
                     saleItem.UnitPrice = product.SalePrice;
-                    saleItem.VatAmount = (saleItem.UnitPrice * product.TaxRateSelling) / 100;
                 }
+
 
                 grandTotal += saleItem.UnitPrice * saleItem.Quantity;
                 sale.SaleItems.Add(saleItem);
+
+                // STOK DÜŞME İŞLEMİ
+                var stock = await _unitOfWork.Stocks.GetSingleAsync(s => s.ProductId == itemDto.ProductId && s.WarehouseId == request.WarehouseId);
+                if (stock == null) return ServiceResponse<SaleDto>.Fail($"Stok bulunamadı! (Ürün ID: {itemDto.ProductId})");
+                
+                if (stock.Quantity < itemDto.Quantity)
+                    return ServiceResponse<SaleDto>.Fail($"Yetersiz stok! (Ürün: {product.Name}, Mevcut: {stock.Quantity}, İstenen: {itemDto.Quantity})");
+
+                stock.Quantity -= itemDto.Quantity;
+                _unitOfWork.Stocks.Update(stock);
             }
             
             sale.TotalAmount = grandTotal;

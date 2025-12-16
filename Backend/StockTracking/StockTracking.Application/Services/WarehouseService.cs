@@ -48,17 +48,7 @@ namespace StockTracking.Application.Services
             var warehouse = _mapper.Map<Warehouse>(request);
             warehouse.NormalizedName = normalizedName;
             
-            // Auto-set Tax Rates based on RentType
-            if (warehouse.RentType == Domain.Enums.RentType.Sahis)
-            {
-                warehouse.StopajRate = 20;
-                warehouse.VatRate = 0;
-            }
-            else if (warehouse.RentType == Domain.Enums.RentType.Sirket)
-            {
-                warehouse.StopajRate = 0;
-                warehouse.VatRate = 20; 
-            }
+
 
             await _unitOfWork.Warehouses.AddAsync(warehouse);
             await _unitOfWork.SaveChangesAsync();
@@ -78,10 +68,10 @@ namespace StockTracking.Application.Services
             string cleanName = CleanUsername(warehouse.Name);
             string password = "Password123!";
 
-            var managerUser = new User { FullName = $"{request.Name} Depo", UserName = $"{cleanName}_depo", Email = $"{cleanName}_depo@stock.com", PhoneNumber = "5550000000", WarehouseId = warehouse.Id, IsActive = true };
+            var managerUser = new User { FullName = $"{request.Name} Depo", UserName = $"{cleanName}@depo.com", Email = $"{cleanName}@depo.com", PhoneNumber = "5550000000", WarehouseId = warehouse.Id, IsActive = true };
             await CreateUserWithRole(managerUser, password, "DepoSorumlusu");
 
-            var salesUser = new User { FullName = $"{request.Name} Satış", UserName = $"{cleanName}_satis", Email = $"{cleanName}_satis@stock.com", PhoneNumber = "5550000000", WarehouseId = warehouse.Id, IsActive = true };
+            var salesUser = new User { FullName = $"{request.Name} Satış", UserName = $"{cleanName}@satis.com", Email = $"{cleanName}@satis.com", PhoneNumber = "5550000000", WarehouseId = warehouse.Id, IsActive = true };
             await CreateUserWithRole(salesUser, password, "SatisPersoneli");
 
             return new ServiceResponse<WarehouseDto>(_mapper.Map<WarehouseDto>(warehouse), $"Depo açıldı. Kullanıcılar oluşturuldu: {managerUser.UserName} ve {salesUser.UserName}");
@@ -101,17 +91,7 @@ namespace StockTracking.Application.Services
 
             _mapper.Map(request, warehouse);
 
-             // Auto-set Tax Rates based on RentType (if changed)
-            if (warehouse.RentType == Domain.Enums.RentType.Sahis)
-            {
-                warehouse.StopajRate = 20;
-                warehouse.VatRate = 0;
-            }
-            else if (warehouse.RentType == Domain.Enums.RentType.Sirket)
-            {
-                warehouse.StopajRate = 0;
-                warehouse.VatRate = 20;
-            }
+
 
             _unitOfWork.Warehouses.Update(warehouse);
             await _unitOfWork.SaveChangesAsync();

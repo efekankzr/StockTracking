@@ -12,7 +12,7 @@ namespace StockTracking.Persistence.Configurations
             builder.HasKey(s => s.Id);
 
             builder.Property(s => s.TotalAmount).HasColumnType("decimal(18,2)");
-            builder.Property(s => s.TotalVatAmount).HasColumnType("decimal(18,2)");
+
             builder.Property(s => s.TransactionNumber).HasMaxLength(50);
 
             builder.HasOne(s => s.User)

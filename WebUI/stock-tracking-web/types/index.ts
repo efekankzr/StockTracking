@@ -87,13 +87,7 @@ export interface WarehouseDto {
   latitude: number;
   longitude: number;
 
-  // Kira Bilgileri
-  rentTypeName?: string;
-  rentTypeValue?: number;
-  officialRentAmount: number;
-  unofficialRentAmount: number;
-  stopajRate: number;
-  vatRate: number;
+
 
   isActive: boolean;
 }
@@ -107,11 +101,7 @@ export interface CreateWarehouseRequest {
   longitude: number;
 
   // Kira Bilgileri
-  rentType: number; // 1: Şahıs, 2: Şirket
-  officialRentAmount: number;
-  unofficialRentAmount: number;
-  stopajRate?: number;
-  vatRate?: number;
+
 }
 
 export interface UpdateWarehouseRequest extends CreateWarehouseRequest {
@@ -128,7 +118,7 @@ export interface ProductDto {
   barcode: string;
   image?: string;
   salePrice: number;
-  taxRateSelling: number;
+
   isActive: boolean;
 }
 
@@ -148,7 +138,7 @@ export interface CreateProductRequest {
   barcode: string;
   image?: string;
   salePrice: number;
-  taxRateSelling: number;
+
 }
 
 export interface UpdateProductRequest extends CreateProductRequest {
@@ -187,7 +177,7 @@ export interface SaleDto {
   salesPerson: string;
   paymentMethod: string;
   totalAmount: number;
-  totalVatAmount: number;
+
   saleItems: SaleItemDto[];
 }
 
@@ -202,8 +192,7 @@ export interface SaleItemDto {
 export interface CreateSaleItemRequest {
   productId: number;
   quantity: number;
-  priceWithVat?: number;
-  vatRate?: number;
+  unitPrice: number;
 }
 
 export interface CreateSaleRequest {

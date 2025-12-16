@@ -5,7 +5,6 @@ namespace StockTracking.Application.DTOs.Sale
         public int ProductId { get; set; }
         public int Quantity { get; set; }
 
-        public decimal? PriceWithVat { get; set; }
-        public decimal? VatRate { get; set; }
+        public decimal? UnitPrice { get; set; }
     }
 }

@@ -19,7 +19,7 @@ namespace StockTracking.Persistence.Configurations
             builder.HasIndex(p => p.Barcode).IsUnique();
 
             builder.Property(p => p.SalePrice).HasColumnType("decimal(18,2)");
-            builder.Property(p => p.TaxRateSelling).HasColumnType("decimal(18,2)");
+
 
             builder.HasOne(p => p.Category)
                    .WithMany(c => c.Products)

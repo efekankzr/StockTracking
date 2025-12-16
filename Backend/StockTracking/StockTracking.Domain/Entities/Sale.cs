@@ -20,7 +20,6 @@ namespace StockTracking.Domain.Entities
         public PaymentMethod PaymentMethod { get; set; }
 
         public decimal TotalAmount { get; set; }
-        public decimal TotalVatAmount { get; set; }
 
         public User User { get; set; }
         public User? ActualSalesPerson { get; set; }

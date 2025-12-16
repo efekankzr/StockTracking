@@ -20,10 +20,7 @@ namespace StockTracking.Persistence.Configurations
             builder.Property(w => w.City).IsRequired().HasMaxLength(50);
             builder.Property(w => w.District).IsRequired().HasMaxLength(50);
 
-            builder.Property(w => w.OfficialRentAmount).HasColumnType("decimal(18,2)");
-            builder.Property(w => w.UnofficialRentAmount).HasColumnType("decimal(18,2)");
-            builder.Property(w => w.StopajRate).HasColumnType("decimal(18,2)");
-            builder.Property(w => w.VatRate).HasColumnType("decimal(18,2)");
+
 
             builder.HasMany(w => w.Stocks)
                    .WithOne(s => s.Warehouse)

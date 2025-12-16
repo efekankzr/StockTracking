@@ -12,7 +12,7 @@ using StockTracking.Persistence.Context;
 namespace StockTracking.Persistence.Migrations
 {
     [DbContext(typeof(StockTrackingDbContext))]
-    [Migration("20251214212519_InitialCreate")]
+    [Migration("20251216091937_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -361,9 +361,6 @@ namespace StockTracking.Persistence.Migrations
                     b.Property<decimal>("SalePrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("TaxRateSelling")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -398,9 +395,6 @@ namespace StockTracking.Persistence.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TotalVatAmount")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("TransactionDate")
@@ -458,12 +452,6 @@ namespace StockTracking.Persistence.Migrations
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("VatRate")
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -750,23 +738,8 @@ namespace StockTracking.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<decimal>("OfficialRentAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("RentType")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("StopajRate")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("UnofficialRentAmount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("VatRate")
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 

@@ -7,14 +7,12 @@ namespace StockTracking.Application.Validations.Product
     {
         public UpdateProductValidator()
         {
-            RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("Kategori seçilmelidir.");
+            RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("Kategori seÃ§ilmelidir.");
             RuleFor(x => x.Name).NotEmpty().MinimumLength(2);
             RuleFor(x => x.Barcode).NotEmpty();
 
             RuleFor(x => x.SalePrice)
-                .GreaterThan(0).WithMessage("Satış fiyatı 0'dan büyük olmalıdır.");
-
-            RuleFor(x => x.TaxRateSelling).InclusiveBetween(0, 100);
+                .GreaterThan(0).WithMessage("SatÄ±ÅŸ fiyatÄ± 0'dan bÃ¼yÃ¼k olmalÄ±dÄ±r.");
         }
     }
 }

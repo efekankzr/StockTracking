@@ -9,8 +9,6 @@ namespace StockTracking.Application.DTOs.Warehouse
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 
-        public int RentType { get; set; } // Enum mapping
-        public decimal OfficialRentAmount { get; set; }
-        public decimal UnofficialRentAmount { get; set; }
+
     }
 }

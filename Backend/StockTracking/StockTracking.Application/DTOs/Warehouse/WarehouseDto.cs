@@ -10,12 +10,7 @@ namespace StockTracking.Application.DTOs.Warehouse
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 
-        public string? RentTypeName { get; set; } 
-        public int RentTypeValue { get; set; } 
-        public decimal OfficialRentAmount { get; set; }
-        public decimal UnofficialRentAmount { get; set; }
-        public int StopajRate { get; set; }
-        public int VatRate { get; set; }
+
         public bool IsActive { get; set; }
     }
 }

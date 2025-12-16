@@ -8,35 +8,29 @@ namespace StockTracking.Application.Validations.Sale
         public CreateSaleValidator()
         {
             RuleFor(x => x.WarehouseId)
-                .GreaterThan(0).WithMessage("Depo seçimi zorunludur.");
-
-            RuleFor(x => x.PaymentMethod)
-                .IsInEnum().WithMessage("Geçersiz ödeme yöntemi.");
+                .GreaterThan(0).WithMessage("Depo seÃ§imi zorunludur.");
 
             RuleFor(x => x.Items)
-                .NotNull().WithMessage("Sepet boş olamaz.")
-                .Must(items => items != null && items.Count > 0).WithMessage("Sepete en az bir ürün eklemelisiniz.");
+                .NotNull().WithMessage("Sepet boÅŸ olamaz.")
+                .Must(items => items != null && items.Count > 0).WithMessage("Sepete en az bir Ã¼rÃ¼n eklemelisiniz.");
 
             RuleForEach(x => x.Items).SetValidator(new CreateSaleItemValidator());
         }
     }
+
     public class CreateSaleItemValidator : AbstractValidator<CreateSaleItemDto>
     {
         public CreateSaleItemValidator()
         {
             RuleFor(x => x.ProductId)
-                .GreaterThan(0).WithMessage("Geçersiz ürün.");
+                .GreaterThan(0).WithMessage("GeÃ§ersiz Ã¼rÃ¼n.");
 
             RuleFor(x => x.Quantity)
-                .GreaterThan(0).WithMessage("Satış adedi en az 1 olmalıdır.");
+                .GreaterThan(0).WithMessage("SatÄ±ÅŸ adedi en az 1 olmalÄ±dÄ±r.");
 
-            RuleFor(x => x.PriceWithVat)
-                .GreaterThanOrEqualTo(0).When(x => x.PriceWithVat.HasValue)
-                .WithMessage("Fiyat 0'dan küçük olamaz.");
-
-            RuleFor(x => x.VatRate)
-                .InclusiveBetween(0, 100).When(x => x.VatRate.HasValue)
-                .WithMessage("KDV oranı 0-100 arasında olmalıdır.");
+            RuleFor(x => x.UnitPrice)
+                .GreaterThan(0).When(x => x.UnitPrice.HasValue)
+                .WithMessage("Fiyat 0'dan bÃ¼yÃ¼k olmalÄ±dÄ±r.");
         }
     }
 }

@@ -12,8 +12,7 @@ namespace StockTracking.Persistence.Configurations
 
             builder.Property(i => i.UnitCost).HasColumnType("decimal(18,4)");
             builder.Property(i => i.UnitPrice).HasColumnType("decimal(18,2)");
-            builder.Property(i => i.VatRate).HasColumnType("decimal(18,2)");
-            builder.Property(i => i.VatAmount).HasColumnType("decimal(18,2)");
+
 
             builder.HasOne(i => i.Product)
                    .WithMany(p => p.SaleItems)

@@ -49,7 +49,7 @@ export default function SalesPage() {
     const currentWarehouseId = user?.role === 'Admin' ? adminSelectedWarehouse : user?.warehouseId;
     const canSell = user?.role === 'SatisPersoneli' || user?.role === 'Admin';
 
-    const isSystemAccount = user?.username.endsWith('_satis') || user?.username.endsWith('_depo');
+    const isSystemAccount = user?.username.endsWith('_satis') || user?.username.endsWith('_depo') || user?.username.endsWith('@depo.com') || user?.username.endsWith('@satis.com');
 
     const { data: products } = useQuery({ queryKey: ['products'], queryFn: productService.getAll });
     const { data: warehouses } = useQuery({ queryKey: ['warehouses'], queryFn: warehouseService.getAll });
@@ -62,6 +62,8 @@ export default function SalesPage() {
             u.warehouseId === currentWarehouseId &&
             !u.username.endsWith('_satis') && // Sistem hesabını listede gösterme
             !u.username.endsWith('_depo') &&  // Depo hesabını listede gösterme
+            !u.username.endsWith('@depo.com') && // Yeni format sistem hesabını gizle
+            !u.username.endsWith('@satis.com') && // Yeni format satış hesabını gizle
             (u.role === 'SatisPersoneli' || u.role === 'DepoSorumlusu' || u.role === 'Admin')
         );
     }, [users, currentWarehouseId]);
@@ -105,8 +107,7 @@ export default function SalesPage() {
             barcode: selectedProduct.barcode,
             quantity: values.quantity,
             stockQuantity: selectedProductStock,
-            priceWithVat: values.priceWithVat,
-            vatRate: values.vatRate
+            unitPrice: values.unitPrice
         }]);
         setIsModalOpen(false);
         setSelectedProduct(null);
@@ -131,7 +132,7 @@ export default function SalesPage() {
     };
 
     const basketTotal = basket.reduce((sum, item) => {
-        return sum + (item.quantity * (item.priceWithVat || 0));
+        return sum + (item.quantity * (item.unitPrice || 0));
     }, 0);
 
     const filteredProductsWithStock = useMemo(() => {
@@ -150,13 +151,7 @@ export default function SalesPage() {
         if (basket.length === 0) return;
 
         // KDV Kuralı
-        if (paymentMethod === 2) {
-            const hasZeroVat = basket.some(i => (i.vatRate || 0) <= 0);
-            if (hasZeroVat) {
-                toast.error("Kredi Kartı ile satışta KDV 0 olamaz!");
-                return;
-            }
-        }
+
 
         if (isSystemAccount && selectedSalesPerson === "0") {
             toast.warning("Lütfen satışı yapan personeli seçiniz!");
@@ -172,8 +167,7 @@ export default function SalesPage() {
             items: basket.map(item => ({
                 productId: item.productId,
                 quantity: item.quantity,
-                priceWithVat: item.priceWithVat,
-                vatRate: item.vatRate
+                unitPrice: item.unitPrice
             }))
         };
 
@@ -235,7 +229,7 @@ export default function SalesPage() {
                                                         <ul className="list-disc pl-3 mt-1 space-y-1">
                                                             {users?.data?.map(u => {
                                                                 const isWarehouseMatch = u.warehouseId === currentWarehouseId;
-                                                                const isSystem = u.username.endsWith('_satis') || u.username.endsWith('_depo');
+                                                                const isSystem = u.username.endsWith('_satis') || u.username.endsWith('_depo') || u.username.endsWith('@depo.com') || u.username.endsWith('@satis.com');
                                                                 const isRoleMatch = (u.role === 'SatisPersoneli' || u.role === 'DepoSorumlusu' || u.role === 'Admin');
 
                                                                 let reason = "";
@@ -362,7 +356,6 @@ export default function SalesPage() {
                                             <TableRow key={index} className="text-sm hover:bg-slate-50/50 group transition-colors">
                                                 <TableCell className="py-3 pl-4">
                                                     <div className="font-medium line-clamp-1 text-slate-800">{item.productName}</div>
-                                                    <div className="text-[10px] text-gray-400 mt-0.5">{item.priceWithVat} ₺ x %{item.vatRate} KDV</div>
                                                 </TableCell>
                                                 <TableCell className="text-center py-3">
                                                     <div className="flex items-center justify-center gap-1 bg-slate-100 rounded-lg p-0.5 border border-slate-200">
@@ -372,7 +365,7 @@ export default function SalesPage() {
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right font-bold py-3 text-slate-700 pr-4">
-                                                    {(item.quantity * (item.priceWithVat || 0)).toLocaleString()} ₺
+                                                    {(item.quantity * (item.unitPrice || 0)).toLocaleString()} ₺
                                                 </TableCell>
                                                 <TableCell className="py-3 pr-2">
                                                     <button

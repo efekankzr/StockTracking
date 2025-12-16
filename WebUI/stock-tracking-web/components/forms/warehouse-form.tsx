@@ -31,12 +31,7 @@ const formSchema = z.object({
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
 
-  // Kira Bilgileri
-  rentType: z.coerce.number(),
-  officialRentAmount: z.coerce.number().min(0, 'Kira tutarı 0\'dan küçük olamaz'),
-  unofficialRentAmount: z.coerce.number().min(0).default(0),
-  stopajRate: z.coerce.number().min(0).max(100).default(20),
-  vatRate: z.coerce.number().min(0).max(100).default(20),
+
 });
 
 type WarehouseFormValues = z.infer<typeof formSchema>;
@@ -61,11 +56,7 @@ export const WarehouseForm: React.FC<WarehouseFormProps> = ({
       district: '',
       latitude: 0,
       longitude: 0,
-      rentType: 1, // Şahıs
-      officialRentAmount: 0,
-      unofficialRentAmount: 0,
-      stopajRate: 20,
-      vatRate: 20,
+
     },
   });
 
@@ -83,11 +74,7 @@ export const WarehouseForm: React.FC<WarehouseFormProps> = ({
         district: initialData.district,
         latitude: initialData.latitude,
         longitude: initialData.longitude,
-        rentType: initialData.rentTypeValue || 1,
-        officialRentAmount: initialData.officialRentAmount || 0,
-        unofficialRentAmount: initialData.unofficialRentAmount || 0,
-        stopajRate: initialData.stopajRate || 20,
-        vatRate: initialData.vatRate || 20,
+
       });
     } else {
       form.reset({
@@ -97,11 +84,7 @@ export const WarehouseForm: React.FC<WarehouseFormProps> = ({
         district: '',
         latitude: 0,
         longitude: 0,
-        rentType: 1,
-        officialRentAmount: 0,
-        unofficialRentAmount: 0,
-        stopajRate: 20,
-        vatRate: 20,
+
       });
     }
   }, [initialData, form]);
@@ -199,108 +182,7 @@ export const WarehouseForm: React.FC<WarehouseFormProps> = ({
                 )}
               />
 
-              {/* KİRA BİLGİLERİ SECTION */}
-              <div className="border p-4 rounded-lg bg-orange-50 space-y-4">
-                <h3 className="text-sm font-medium text-orange-800 border-b border-orange-200 pb-2 mb-2">
-                  Kira ve Vergi Bilgileri
-                </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="rentType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kira Türü</FormLabel>
-                        <Select
-                          onValueChange={(val) => field.onChange(Number(val))}
-                          value={field.value?.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Seçiniz" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="1">Şahıs (Stopajlı)</SelectItem>
-                            <SelectItem value="2">Şirket (Faturalı/KDV'li)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-2">
-                    {form.watch('rentType') === 1 ? (
-                      <FormField
-                        control={form.control}
-                        name="stopajRate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Stopaj (%)</FormLabel>
-                            <FormControl>
-                              <Input type="number" {...field} value={(field.value ?? '').toString()} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    ) : (
-                      <FormField
-                        control={form.control}
-                        name="vatRate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>KDV (%)</FormLabel>
-                            <FormControl>
-                              <Input type="number" {...field} value={(field.value ?? '').toString()} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="officialRentAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Resmi Kira (TL)</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="0.00" {...field} value={(field.value ?? '').toString()} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="unofficialRentAmount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Elden (TL)</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="0.00" {...field} value={(field.value ?? '').toString()} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="text-xs text-orange-600 bg-orange-100 p-2 rounded">
-                  {form.watch('rentType') === 1
-                    ? `ℹ️ Şahıs kiralamalarında brüt kira üzerinden %${form.watch('stopajRate')} Stopaj hesaplanır.`
-                    : `ℹ️ Şirket kiralamalarında resmi tutar üzerinden %${form.watch('vatRate')} KDV hesaplanır.`
-                  }
-                </div>
-              </div>
             </div>
 
             {/* Fixed Footer for Button */}
