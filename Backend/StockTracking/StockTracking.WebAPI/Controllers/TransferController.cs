@@ -33,7 +33,7 @@ namespace StockTracking.WebAPI.Controllers
             var warehouseIdClaim = User.FindFirst("WarehouseId")?.Value;
             if (string.IsNullOrEmpty(warehouseIdClaim))
             {
-                return BadRequest(ServiceResponse<object>.Fail("Kullanýcýnýn deposu bulunamadý."));
+                return BadRequest(ServiceResponse<object>.Fail("KullanÄ±cÄ±nÄ±n deposu bulunamadÄ±."));
             }
 
             var responseDepo = await _service.GetByWarehouseIdAsync(int.Parse(warehouseIdClaim));
@@ -54,7 +54,7 @@ namespace StockTracking.WebAPI.Controllers
                 var userWarehouseId = User.FindFirst("WarehouseId")?.Value;
                 if (userWarehouseId != null && int.Parse(userWarehouseId) != request.SourceWarehouseId)
                 {
-                    return BadRequest(ServiceResponse<bool>.Fail("Sadece sorumlu olduðunuz depodan transfer baþlatabilirsiniz."));
+                    return BadRequest(ServiceResponse<bool>.Fail("Sadece sorumlu olduÄŸunuz depodan transfer baÅŸlatabilirsiniz."));
                 }
             }
 

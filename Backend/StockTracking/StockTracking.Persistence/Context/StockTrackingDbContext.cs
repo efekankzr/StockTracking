@@ -22,8 +22,6 @@ namespace StockTracking.Persistence.Context
         public DbSet<Sale> Sales { get; set; }
         public DbSet<SaleItem> SaleItems { get; set; }
         public DbSet<StockTransfer> StockTransfers { get; set; }
-        public DbSet<ExpenseCategory> ExpenseCategories { get; set; }
-        public DbSet<ExpenseTransaction> ExpenseTransactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

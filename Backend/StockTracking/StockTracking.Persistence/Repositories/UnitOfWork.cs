@@ -15,8 +15,6 @@ namespace StockTracking.Persistence.Repositories
         private ISaleRepository? _sales;
         private IUserRepository? _users;
         private ITransferRepository? _stockTransfers;
-        private IExpenseCategoryRepository? _expenseCategories;
-        private IExpenseTransactionRepository? _expenseTransactions;
 
         public UnitOfWork(StockTrackingDbContext context)
         {
@@ -31,9 +29,6 @@ namespace StockTracking.Persistence.Repositories
         public ISaleRepository Sales => _sales ??= new SaleRepository(_context);
         public IUserRepository Users => _users ??= new UserRepository(_context);
         public ITransferRepository StockTransfers => _stockTransfers ??= new TransferRepository(_context);
-        public IExpenseCategoryRepository ExpenseCategories => _expenseCategories ??= new ExpenseCategoryRepository(_context);
-        public IExpenseTransactionRepository ExpenseTransactions => _expenseTransactions ??= new ExpenseTransactionRepository(_context);
-
 
         public async Task<int> SaveChangesAsync()
         {

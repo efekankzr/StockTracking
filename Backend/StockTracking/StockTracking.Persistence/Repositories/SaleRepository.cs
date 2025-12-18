@@ -12,6 +12,9 @@ namespace StockTracking.Persistence.Repositories
 
         public async Task<List<Sale>> GetSalesByDateAsync(DateTime date)
         {
+            var startDate = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Utc);
+            var endDate = startDate.AddDays(1);
+            
             return await _context.Sales
                 .Include(s => s.User)
                 .Include(s => s.Warehouse)
@@ -20,7 +23,7 @@ namespace StockTracking.Persistence.Repositories
                 .Include(s => s.SaleItems)
                     .ThenInclude(si => si.Product)
 
-                .Where(s => s.TransactionDate.Date == date.Date)
+                .Where(s => s.TransactionDate >= startDate && s.TransactionDate < endDate)
                 .OrderByDescending(s => s.TransactionDate)
                 .AsNoTracking()
                 .ToListAsync();

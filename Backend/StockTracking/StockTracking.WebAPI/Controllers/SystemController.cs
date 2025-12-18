@@ -24,7 +24,7 @@ namespace StockTracking.WebAPI.Controllers
         }
 
         [HttpGet("setup-status")]
-        [AllowAnonymous] // Login olmadan da kontrol edilebilir olmalı, veya frontend token yoksa login'e atıyor zaten. Amaç setup.
+        [AllowAnonymous]
         public async Task<IActionResult> GetSetupStatus()
         {
             var categories = await _categoryService.GetAllAsync();

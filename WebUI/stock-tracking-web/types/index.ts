@@ -9,5 +9,4 @@ export * from './sale';
 export * from './transfer';
 export * from './report';
 export * from './role';
-export * from './expense';
 export * from './setup';

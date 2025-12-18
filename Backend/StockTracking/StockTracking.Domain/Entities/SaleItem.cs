@@ -11,8 +11,6 @@ namespace StockTracking.Domain.Entities
         public decimal UnitCost { get; set; }
         public decimal UnitPrice { get; set; }
 
-
-
         public Sale Sale { get; set; }
         public Product Product { get; set; }
     }

@@ -3,6 +3,7 @@ import { SaleDto, CreateSaleRequest } from '@/types/sale';
 import { UserSalesReportDto } from '@/types/report';
 import { DashboardSummaryDto } from '@/types/dashboard';
 import { ServiceResponse } from '@/types/common';
+import { format } from 'date-fns';
 
 const saleService = {
   getAll: async () => {
@@ -16,7 +17,7 @@ const saleService = {
   },
 
   getDailyReport: async (date: Date) => {
-    const dateString = date.toISOString();
+    const dateString = format(date, 'yyyy-MM-dd');
     const response = await api.get<ServiceResponse<UserSalesReportDto[]>>(`/sale/report?date=${dateString}`);
     return response.data;
   },

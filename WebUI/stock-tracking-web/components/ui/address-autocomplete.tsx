@@ -39,7 +39,7 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Arama Yap (Nominatim API)
+  // Arama Yap (Client-Side Nominatim)
   useEffect(() => {
     const fetchAddresses = async () => {
       if (!debouncedQuery || debouncedQuery.length < 3) {
@@ -52,15 +52,19 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
       setErrorMsg(null);
 
       try {
+        // Doğrudan Nominatim API'sine istek atıyoruz (Proxy kullanmadan)
+        // Böylece server terminalinde log oluşmaz.
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(debouncedQuery)}&addressdetails=1&limit=5&countrycodes=tr`;
 
-
-        const url = `/api/proxy/nominatim?q=${encodeURIComponent(debouncedQuery)}`;
-        const res = await fetch(url);
+        const res = await fetch(url, {
+          headers: {
+            'Accept-Language': 'tr',
+          }
+        });
 
         if (!res.ok) throw new Error(`API Hatası: ${res.status}`);
 
         const data = await res.json();
-
 
         if (data && data.length > 0) {
           setSuggestions(data);
@@ -68,6 +72,7 @@ export function AddressAutocomplete({ onSelect, defaultValue }: AddressAutocompl
         } else {
           setSuggestions([]);
           setIsOpen(false);
+          // Auto-complete olduğu için "Sonuç bulunamadı" hatası genelde gösterilmez, sessizce liste kapanır.
         }
 
       } catch (error) {

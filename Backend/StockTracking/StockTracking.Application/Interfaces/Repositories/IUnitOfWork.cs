@@ -10,8 +10,6 @@ namespace StockTracking.Application.Interfaces.Repositories
         ISaleRepository Sales { get; }
         IUserRepository Users { get; }
         ITransferRepository StockTransfers { get; }
-        IExpenseCategoryRepository ExpenseCategories { get; }
-        IExpenseTransactionRepository ExpenseTransactions { get; }
         Task<int> SaveChangesAsync();
     }
 }

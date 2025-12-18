@@ -20,7 +20,6 @@ export default function DashboardLayout({
   });
 
   useEffect(() => {
-    // Sistem hazır değilse ve biz setup sayfasında değilsek (zaten setup dashboard layout içinde değil)
     if (status !== undefined && !status.isSystemReady) {
       router.push('/setup');
     }
@@ -34,7 +33,6 @@ export default function DashboardLayout({
     );
   }
 
-  // Eğer hazır değilse içeriği gösterme, yönlenmeyi bekle
   if (status !== undefined && !status.isSystemReady) {
     return null;
   }
@@ -46,7 +44,6 @@ export default function DashboardLayout({
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden bg-slate-50/50">
-        {/* Sayfa içeriği kendi scroll ve padding'ini yönetecek */}
         <div className="flex-1 overflow-hidden">
           {children}
         </div>

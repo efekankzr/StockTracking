@@ -43,9 +43,6 @@ namespace StockTracking.WebAPI.Middlewares
                 Message = "Sunucu hatası oluştu."
             };
             response.Success = false;
-            
-            // Geliştirme ortamında detay gösterilebilir, prod'da gizlenmeli.
-            // Şimdilik basit tutuyoruz.
             response.Message = exception.Message; 
 
             var json = JsonSerializer.Serialize(response);

@@ -12,7 +12,7 @@ using StockTracking.Persistence.Context;
 namespace StockTracking.Persistence.Migrations
 {
     [DbContext(typeof(StockTrackingDbContext))]
-    [Migration("20251216093901_InitialCreate")]
+    [Migration("20251218112100_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -193,131 +193,6 @@ namespace StockTracking.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Categories", (string)null);
-                });
-
-            modelBuilder.Entity("StockTracking.Domain.Entities.ExpenseCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("DefaultVatRate")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(20);
-
-                    b.Property<int>("DefaultWithholdingRate")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<bool>("HasWithholding")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("IsSystemDefault")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsTaxDeductible")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("NormalizedName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique();
-
-                    b.ToTable("ExpenseCategories", (string)null);
-                });
-
-            modelBuilder.Entity("StockTracking.Domain.Entities.ExpenseTransaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,4)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<DateTime>("DocumentDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DocumentNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<int>("ExpenseCategoryId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsVatIncludedEntry")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("UpdatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("VatAmount")
-                        .HasColumnType("decimal(18,4)");
-
-                    b.Property<int>("WarehouseId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("WithholdingAmount")
-                        .HasColumnType("decimal(18,4)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExpenseCategoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("WarehouseId");
-
-                    b.ToTable("ExpenseTransactions", (string)null);
                 });
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Product", b =>
@@ -800,31 +675,6 @@ namespace StockTracking.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StockTracking.Domain.Entities.ExpenseTransaction", b =>
-                {
-                    b.HasOne("StockTracking.Domain.Entities.ExpenseCategory", "ExpenseCategory")
-                        .WithMany("Transactions")
-                        .HasForeignKey("ExpenseCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("StockTracking.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("StockTracking.Domain.Entities.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("ExpenseCategory");
-
-                    b.Navigation("User");
-
-                    b.Navigation("Warehouse");
-                });
-
             modelBuilder.Entity("StockTracking.Domain.Entities.Product", b =>
                 {
                     b.HasOne("StockTracking.Domain.Entities.Category", "Category")
@@ -973,11 +823,6 @@ namespace StockTracking.Persistence.Migrations
             modelBuilder.Entity("StockTracking.Domain.Entities.Category", b =>
                 {
                     b.Navigation("Products");
-                });
-
-            modelBuilder.Entity("StockTracking.Domain.Entities.ExpenseCategory", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("StockTracking.Domain.Entities.Product", b =>

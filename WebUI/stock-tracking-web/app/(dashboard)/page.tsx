@@ -24,7 +24,6 @@ import { UserForm } from '@/components/forms/user-form';
 import { WarehouseForm } from '@/components/forms/warehouse-form';
 import { toast } from 'sonner';
 
-// Reusable logic for stock entry
 const useStockEntry = () => {
     const [isOpen, setIsOpen] = useState(false);
     const queryClient = useQueryClient();
@@ -48,7 +47,6 @@ const useStockEntry = () => {
     return { isOpen, setIsOpen, createEntryMutation, onSubmit };
 };
 
-// --- ADMIN DASHBOARD LOGIC --- 
 const useAdminActions = () => {
     const queryClient = useQueryClient();
     const [isUserOpen, setIsUserOpen] = useState(false);
@@ -106,7 +104,6 @@ const useAdminActions = () => {
 }
 
 
-// --- 1. ADMIN DASHBOARD ---
 const AdminDashboard = () => {
     const { data: summary, isLoading } = useQuery({
         queryKey: ['dashboardSummary'],
@@ -145,7 +142,6 @@ const AdminDashboard = () => {
             </div>
 
             <div className="flex-1 overflow-auto min-h-0 space-y-6 pr-2">
-                {/* İSTATİSTİK KARTLARI */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <Card className="border-l-4 border-l-blue-500 shadow-sm bg-white">
                         <CardContent className="p-6">
@@ -194,7 +190,6 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
-                    {/* SON İŞLEMLER */}
                     <Card className="col-span-2 shadow-sm border-0 lg:border">
                         <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg flex items-center gap-2"><ShoppingCart className="w-5 h-5 text-blue-600" /> Son Satış İşlemleri</CardTitle></CardHeader>
                         <CardContent className="p-0 overflow-hidden">
@@ -227,7 +222,6 @@ const AdminDashboard = () => {
                         </CardContent>
                     </Card>
 
-                    {/* HIZLI MENÜ */}
                     <Card className="shadow-sm border-0 lg:border h-fit">
                         <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg">Hızlı Menü</CardTitle></CardHeader>
                         <CardContent className="p-4 grid grid-cols-1 gap-3">
@@ -263,12 +257,10 @@ const AdminDashboard = () => {
     );
 };
 
-// --- 2. WAREHOUSE DASHBOARD ---
 const WarehouseDashboard = () => {
     const { user } = useAuth();
     const { isOpen, setIsOpen, createEntryMutation, onSubmit } = useStockEntry();
 
-    // Fetch Data
     const { data: transfers } = useQuery({ queryKey: ['transfers'], queryFn: transferService.getAll });
     const { data: stocks } = useQuery({ queryKey: ['stocks'], queryFn: stockService.getAll });
 
@@ -290,7 +282,6 @@ const WarehouseDashboard = () => {
             </div>
 
             <div className="flex-1 overflow-auto min-h-0 space-y-6 pr-2">
-                {/* İSTATİSTİK KARTLARI */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Card className="border-l-4 border-l-orange-500 shadow-sm bg-white">
                         <CardContent className="p-6">
@@ -328,7 +319,6 @@ const WarehouseDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* HIZLI MENÜ */}
                     <Card className="col-span-1 shadow-sm border-0 lg:border">
                         <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg">Hızlı İşlemler</CardTitle></CardHeader>
                         <CardContent className="p-4 grid grid-cols-1 gap-3">
@@ -348,7 +338,6 @@ const WarehouseDashboard = () => {
                         </CardContent>
                     </Card>
 
-                    {/* BEKLEYEN TRANSFERLER */}
                     <Card className="col-span-2 shadow-sm border-0 lg:border">
                         <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg flex items-center gap-2"><Truck className="w-5 h-5 text-slate-500" /> Bekleyen Girişler</CardTitle></CardHeader>
                         <CardContent className="p-0">
@@ -392,7 +381,6 @@ const WarehouseDashboard = () => {
     );
 };
 
-// --- 3. SALES DASHBOARD ---
 const SalesDashboard = () => {
     const { user } = useAuth();
     const { data: dailyReport } = useQuery({
@@ -414,7 +402,6 @@ const SalesDashboard = () => {
             </div>
 
             <div className="flex-1 overflow-auto min-h-0 space-y-6 pr-2">
-                {/* İSTATİSTİK KARTLARI */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Card className="border-l-4 border-l-indigo-500 shadow-sm bg-white">
                         <CardContent className="p-6">
@@ -452,7 +439,6 @@ const SalesDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* HIZLI MENÜ */}
                     <Card className="col-span-1 shadow-sm border-0 lg:border">
                         <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg">Hızlı İşlemler</CardTitle></CardHeader>
                         <CardContent className="p-4 grid grid-cols-1 gap-3">
@@ -466,13 +452,9 @@ const SalesDashboard = () => {
                                     <Search className="mr-3 w-5 h-5 text-orange-500" /> Fiyat Gör / Stok Bak
                                 </Button>
                             </Link>
-                            {/* <Button variant="outline" disabled className="w-full justify-start h-12 border-slate-200 hover:bg-red-50 text-slate-400">
-                                <ArrowRightLeft className="mr-3 w-5 h-5 text-red-300" /> İade İşlemi (Yakında)
-                            </Button> */}
                         </CardContent>
                     </Card>
 
-                    {/* SON SATIŞLARIM */}
                     <Card className="col-span-2 shadow-sm border-0 lg:border">
                         <CardHeader className="border-b bg-slate-50/50 py-4"><CardTitle className="text-lg flex items-center gap-2"><History className="w-5 h-5 text-slate-500" /> Son Satışlarım</CardTitle></CardHeader>
                         <CardContent className="p-0">

@@ -64,18 +64,6 @@ const menuItems = [
     icon: Users,
     roles: ['Admin', 'SatisPersoneli', 'DepoSorumlusu']
   },
-  {
-    href: '/expenses/categories',
-    label: 'Gider Tanımları',
-    icon: Settings,
-    roles: ['Admin']
-  },
-  {
-    href: '/expenses',
-    label: 'Giderler',
-    icon: Receipt,
-    roles: ['Admin', 'DepoSorumlusu']
-  },
 ];
 
 export default function Sidebar() {
@@ -91,11 +79,9 @@ export default function Sidebar() {
   return (
     <div className="flex flex-col h-full w-72 bg-slate-950 text-slate-300 border-r border-slate-800/50 shadow-2xl relative overflow-hidden">
 
-      {/* Dekoratif Arkaplan Efektleri */}
       <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[200px] h-[200px] bg-gradient-to-tl from-indigo-900/10 to-transparent pointer-events-none rounded-full blur-3xl" />
 
-      {/* Header Alanı */}
       <div className="p-6 pb-2 relative z-10">
         <div className="flex items-center gap-3 mb-6 px-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-900/30">
@@ -107,7 +93,6 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Kullanıcı Kartı (Mini) */}
         <div className="bg-slate-900/50 rounded-xl p-3 border border-slate-800/50 flex items-center gap-3 mb-2 backdrop-blur-sm">
           <Avatar className="h-9 w-9 border border-indigo-500/30 shadow-sm">
             <AvatarImage src={`https://ui-avatars.com/api/?name=${user.fullName}&background=6366f1&color=fff`} />
@@ -120,7 +105,6 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Menü Alanı */}
       <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent relative z-10">
         <p className="px-3 text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2 mt-2">Menü</p>
 
@@ -158,7 +142,6 @@ export default function Sidebar() {
           })}
       </nav>
 
-      {/* Footer / Çıkış */}
       <div className="p-4 border-t border-slate-800/50 bg-slate-950/50 backdrop-blur-sm relative z-10">
         <button
           onClick={logout}

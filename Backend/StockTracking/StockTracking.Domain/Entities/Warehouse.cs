@@ -20,8 +20,6 @@ namespace StockTracking.Domain.Entities
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 
-
-
         public bool IsActive { get; set; } = true;
         public bool IsDeleted { get; set; } = false;
 

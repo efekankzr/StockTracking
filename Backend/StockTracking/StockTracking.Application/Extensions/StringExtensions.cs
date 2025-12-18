@@ -10,10 +10,10 @@ namespace StockTracking.Application.Extensions
         {
             if (string.IsNullOrWhiteSpace(text))
                 return string.Empty;
-                
+
             var lowerText = text.ToLower(new CultureInfo("tr-TR"));
             var normalized = lowerText.Replace(" ", "_");
-
+        
             return normalized;
         }
     }

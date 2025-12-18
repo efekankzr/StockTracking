@@ -1,7 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using StockTracking.Application.DTOs.Category;
-using StockTracking.Application.DTOs.Expense;
 using StockTracking.Application.DTOs.Product;
 using StockTracking.Application.DTOs.Role;
 using StockTracking.Application.DTOs.Sale;
@@ -93,18 +92,6 @@ namespace StockTracking.Application.Mapping
                 .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name))
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName))
                 .ForMember(dest => dest.ProcessType, opt => opt.MapFrom(src => src.ProcessType.ToString()));
-
-            // --- EXPENSE MAPPING (GİDER MODÜLÜ) ---
-            CreateMap<ExpenseCategory, ExpenseCategoryDto>().ReverseMap();
-            CreateMap<CreateExpenseCategoryDto, ExpenseCategory>();
-            CreateMap<UpdateExpenseCategoryDto, ExpenseCategory>();
-
-            CreateMap<ExpenseTransaction, ExpenseTransactionDto>()
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.ExpenseCategory.Name))
-                .ForMember(dest => dest.WarehouseName, opt => opt.MapFrom(src => src.Warehouse.Name))
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.FullName));
-
-            CreateMap<CreateExpenseTransactionDto, ExpenseTransaction>();
         }
     }
 }
